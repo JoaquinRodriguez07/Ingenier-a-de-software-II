@@ -1,0 +1,404 @@
+{
+  "car_models": [
+    {
+      "brand": "Chevrolet",
+      "model": "Onix",
+      "engine_code": "1.4 8V",
+      "year_from": 2013,
+      "year_to": 2019,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Chevrolet",
+      "model": "Onix",
+      "engine_code": "1.0 Turbo",
+      "year_from": 2020,
+      "year_to": 2024,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Chevrolet",
+      "model": "Prisma",
+      "engine_code": "1.4 8V",
+      "year_from": 2013,
+      "year_to": 2019,
+      "segment": "sedan"
+    },
+    {
+      "brand": "Chevrolet",
+      "model": "Corsa",
+      "engine_code": "1.6 8V",
+      "year_from": 2000,
+      "year_to": 2010,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Chevrolet",
+      "model": "Spin",
+      "engine_code": "1.8 8V",
+      "year_from": 2013,
+      "year_to": 2023,
+      "segment": "minivan"
+    },
+    {
+      "brand": "Chevrolet",
+      "model": "Cruze",
+      "engine_code": "1.4 Turbo",
+      "year_from": 2017,
+      "year_to": 2024,
+      "segment": "sedan"
+    },
+    {
+      "brand": "Chevrolet",
+      "model": "Tracker",
+      "engine_code": "1.2 Turbo",
+      "year_from": 2020,
+      "year_to": 2024,
+      "segment": "suv"
+    },
+    {
+      "brand": "Chevrolet",
+      "model": "S10",
+      "engine_code": "2.8 Duramax",
+      "year_from": 2012,
+      "year_to": 2024,
+      "segment": "pickup"
+    },
+    {
+      "brand": "Fiat",
+      "model": "Cronos",
+      "engine_code": "1.3 Firefly",
+      "year_from": 2018,
+      "year_to": 2024,
+      "segment": "sedan"
+    },
+    {
+      "brand": "Fiat",
+      "model": "Argo",
+      "engine_code": "1.3 Firefly",
+      "year_from": 2018,
+      "year_to": 2024,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Fiat",
+      "model": "Palio",
+      "engine_code": "1.4 Fire",
+      "year_from": 2004,
+      "year_to": 2016,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Fiat",
+      "model": "Siena",
+      "engine_code": "1.4 Fire",
+      "year_from": 2004,
+      "year_to": 2016,
+      "segment": "sedan"
+    },
+    {
+      "brand": "Fiat",
+      "model": "Uno",
+      "engine_code": "1.4 Fire",
+      "year_from": 2010,
+      "year_to": 2021,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Fiat",
+      "model": "Strada",
+      "engine_code": "1.4 Fire",
+      "year_from": 2009,
+      "year_to": 2020,
+      "segment": "pickup"
+    },
+    {
+      "brand": "Fiat",
+      "model": "Toro",
+      "engine_code": "2.0 Multijet",
+      "year_from": 2016,
+      "year_to": 2024,
+      "segment": "pickup"
+    },
+    {
+      "brand": "Volkswagen",
+      "model": "Gol",
+      "engine_code": "1.6 MSI",
+      "year_from": 2013,
+      "year_to": 2023,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Volkswagen",
+      "model": "Voyage",
+      "engine_code": "1.6 MSI",
+      "year_from": 2013,
+      "year_to": 2022,
+      "segment": "sedan"
+    },
+    {
+      "brand": "Volkswagen",
+      "model": "Saveiro",
+      "engine_code": "1.6 MSI",
+      "year_from": 2010,
+      "year_to": 2023,
+      "segment": "pickup"
+    },
+    {
+      "brand": "Volkswagen",
+      "model": "Polo",
+      "engine_code": "1.6 MSI",
+      "year_from": 2018,
+      "year_to": 2024,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Volkswagen",
+      "model": "Virtus",
+      "engine_code": "1.6 MSI",
+      "year_from": 2018,
+      "year_to": 2024,
+      "segment": "sedan"
+    },
+    {
+      "brand": "Volkswagen",
+      "model": "T-Cross",
+      "engine_code": "1.0 TSI",
+      "year_from": 2019,
+      "year_to": 2024,
+      "segment": "suv"
+    },
+    {
+      "brand": "Volkswagen",
+      "model": "Amarok",
+      "engine_code": "2.0 TDI",
+      "year_from": 2011,
+      "year_to": 2024,
+      "segment": "pickup"
+    },
+    {
+      "brand": "Ford",
+      "model": "Fiesta",
+      "engine_code": "1.6 Sigma",
+      "year_from": 2011,
+      "year_to": 2019,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Ford",
+      "model": "Focus",
+      "engine_code": "2.0 Duratec",
+      "year_from": 2009,
+      "year_to": 2018,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Ford",
+      "model": "Ka",
+      "engine_code": "1.5 Dragon",
+      "year_from": 2018,
+      "year_to": 2023,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Ford",
+      "model": "EcoSport",
+      "engine_code": "1.5 Dragon",
+      "year_from": 2018,
+      "year_to": 2022,
+      "segment": "suv"
+    },
+    {
+      "brand": "Ford",
+      "model": "Ranger",
+      "engine_code": "3.2 Duratorq",
+      "year_from": 2012,
+      "year_to": 2022,
+      "segment": "pickup"
+    },
+    {
+      "brand": "Renault",
+      "model": "Sandero",
+      "engine_code": "1.6 K4M",
+      "year_from": 2012,
+      "year_to": 2020,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Renault",
+      "model": "Logan",
+      "engine_code": "1.6 K4M",
+      "year_from": 2010,
+      "year_to": 2020,
+      "segment": "sedan"
+    },
+    {
+      "brand": "Renault",
+      "model": "Stepway",
+      "engine_code": "1.6 K4M",
+      "year_from": 2013,
+      "year_to": 2020,
+      "segment": "suv"
+    },
+    {
+      "brand": "Renault",
+      "model": "Duster",
+      "engine_code": "1.6 K4M",
+      "year_from": 2012,
+      "year_to": 2021,
+      "segment": "suv"
+    },
+    {
+      "brand": "Renault",
+      "model": "Kwid",
+      "engine_code": "1.0 SCe",
+      "year_from": 2018,
+      "year_to": 2024,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Renault",
+      "model": "Kangoo",
+      "engine_code": "1.6 K7M",
+      "year_from": 2008,
+      "year_to": 2019,
+      "segment": "van"
+    },
+    {
+      "brand": "Peugeot",
+      "model": "208",
+      "engine_code": "1.6 EC5",
+      "year_from": 2013,
+      "year_to": 2021,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Peugeot",
+      "model": "2008",
+      "engine_code": "1.6 EC5",
+      "year_from": 2016,
+      "year_to": 2022,
+      "segment": "suv"
+    },
+    {
+      "brand": "Peugeot",
+      "model": "Partner",
+      "engine_code": "1.6 HDi",
+      "year_from": 2010,
+      "year_to": 2020,
+      "segment": "van"
+    },
+    {
+      "brand": "Citroen",
+      "model": "C3",
+      "engine_code": "1.6 EC5",
+      "year_from": 2013,
+      "year_to": 2021,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Citroen",
+      "model": "Berlingo",
+      "engine_code": "1.6 HDi",
+      "year_from": 2010,
+      "year_to": 2020,
+      "segment": "van"
+    },
+    {
+      "brand": "Toyota",
+      "model": "Etios",
+      "engine_code": "1.5 2NR",
+      "year_from": 2013,
+      "year_to": 2022,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Toyota",
+      "model": "Yaris",
+      "engine_code": "1.5 2NR",
+      "year_from": 2018,
+      "year_to": 2024,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Toyota",
+      "model": "Corolla",
+      "engine_code": "1.8 2ZR",
+      "year_from": 2015,
+      "year_to": 2024,
+      "segment": "sedan"
+    },
+    {
+      "brand": "Toyota",
+      "model": "Hilux",
+      "engine_code": "2.8 1GD",
+      "year_from": 2016,
+      "year_to": 2024,
+      "segment": "pickup"
+    },
+    {
+      "brand": "Nissan",
+      "model": "March",
+      "engine_code": "1.6 HR16",
+      "year_from": 2011,
+      "year_to": 2020,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Nissan",
+      "model": "Versa",
+      "engine_code": "1.6 HR16",
+      "year_from": 2015,
+      "year_to": 2024,
+      "segment": "sedan"
+    },
+    {
+      "brand": "Nissan",
+      "model": "Kicks",
+      "engine_code": "1.6 HR16",
+      "year_from": 2017,
+      "year_to": 2024,
+      "segment": "suv"
+    },
+    {
+      "brand": "Nissan",
+      "model": "Frontier",
+      "engine_code": "2.3 YS23",
+      "year_from": 2018,
+      "year_to": 2024,
+      "segment": "pickup"
+    },
+    {
+      "brand": "Hyundai",
+      "model": "HB20",
+      "engine_code": "1.6 Gamma",
+      "year_from": 2013,
+      "year_to": 2022,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Hyundai",
+      "model": "Creta",
+      "engine_code": "1.6 Gamma",
+      "year_from": 2017,
+      "year_to": 2024,
+      "segment": "suv"
+    },
+    {
+      "brand": "Kia",
+      "model": "Rio",
+      "engine_code": "1.6 Gamma",
+      "year_from": 2012,
+      "year_to": 2020,
+      "segment": "hatchback"
+    },
+    {
+      "brand": "Kia",
+      "model": "Sportage",
+      "engine_code": "2.0 Nu",
+      "year_from": 2016,
+      "year_to": 2023,
+      "segment": "suv"
+    }
+  ]
+}
