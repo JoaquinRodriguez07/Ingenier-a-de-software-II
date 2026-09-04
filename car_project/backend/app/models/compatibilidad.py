@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy.orm import relationship
 
 from app.db.base import Base
 
@@ -9,3 +10,6 @@ class Compatibilidad(Base):
     id_modelo = Column(Integer, ForeignKey("modelo_auto.id_modelo"), primary_key = True)
     anio_desde = Column(Integer, nullable = False)
     anio_hasta = Column(Integer, nullable = False)
+
+    repuesto = relationship("Repuesto", back_populates = "compatibilidades")
+    modelo = relationship("ModeloAuto")

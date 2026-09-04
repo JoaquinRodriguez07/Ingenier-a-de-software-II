@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 
 from app.db.base import Base
 
@@ -12,3 +13,5 @@ class Repuesto(Base):
     color = Column(String(40), nullable = True)
     precio = Column(Integer, nullable = False)
     stock = Column(Integer, nullable = False, default = 0)
+
+    compatibilidades = relationship("Compatibilidad", back_populates = "repuesto")
