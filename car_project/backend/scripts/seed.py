@@ -9,10 +9,12 @@ scripts/generate_dataset.py first if those files don't exist yet.
 import json
 from pathlib import Path
 
-from app.db.session import SessionLocal
+from app.db.base import Base
+from app.db.session import SessionLocal, engine
 from app.models.car_model import CarModel
 from app.models.compatibility import Compatibility
 from app.models.part import Part
+import app.models
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
@@ -23,6 +25,7 @@ def load_json(filename, key):
 
 
 def main():
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
     if db.query(CarModel).count() > 0:
