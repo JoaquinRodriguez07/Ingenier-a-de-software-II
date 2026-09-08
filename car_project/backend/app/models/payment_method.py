@@ -1,3 +1,5 @@
+# HAY QUE VER BIEN LOS METODOS DE PAGO Y ESO ESTO ES MUY TEMPORAL
+
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
