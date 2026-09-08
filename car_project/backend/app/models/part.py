@@ -15,3 +15,5 @@ class Part(Base):
     stock = Column(Integer, nullable = False, default = 0)
 
     compatibilities = relationship("Compatibility", back_populates = "part")
+    cart_items = relationship("CartItem", back_populates="part")
+    order_items = relationship("OrderItem", back_populates="part")
