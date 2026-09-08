@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 
+from app.models.order import OrderState
+
 
 class OrderItemCreate(BaseModel):
     part_id: int
@@ -21,4 +23,5 @@ class OrderCreate(BaseModel):
 class OrderOut(BaseModel):
     order_id: int
     client_id: int
+    state: OrderState
     items: list[OrderItemOut]
