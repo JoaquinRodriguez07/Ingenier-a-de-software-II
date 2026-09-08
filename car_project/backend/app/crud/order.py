@@ -7,7 +7,7 @@ from app.models.cart_item import CartItem
 from app.models.client import Client
 from app.models.compatibility import Compatibility
 from app.models.employee import Employee
-from app.models.order import Order
+from app.models.order import Order, OrderState
 from app.models.order_item import OrderItem
 from app.models.part import Part
 from app.models.payment_method import PaymentMethod
@@ -64,4 +64,39 @@ def place_order(db: Session, client_id: int) -> Order:
             part.stock -= cart_item.amount
 
         cart.items.clear()
+        return order
+
+
+def update_order_state(db: Session, order_id: int, state: OrderState) -> Order:
+    """Set an order to a specific state."""
+    with db.begin():
+        order = db.scalar(
+            select(Order).where(Order.order_id == order_id).with_for_update()
+        )
+        if order is None:
+            raise ValueError("Order not found")
+
+        order.state = state
+        return order
+
+
+def advance_order_state(db: Session, order_id: int) -> Order:
+    """Advance an order from pending to in_transit or in_transit to delivered."""
+    next_state = {
+        OrderState.PENDING: OrderState.IN_TRANSIT,
+        OrderState.IN_TRANSIT: OrderState.DELIVERED,
+    }
+
+    with db.begin():
+        order = db.scalar(
+            select(Order).where(Order.order_id == order_id).with_for_update()
+        )
+        if order is None:
+            raise ValueError("Order not found")
+
+        try:
+            order.state = next_state[order.state]
+        except KeyError as error:
+            raise ValueError("Delivered orders cannot be advanced") from error
+
         return order
