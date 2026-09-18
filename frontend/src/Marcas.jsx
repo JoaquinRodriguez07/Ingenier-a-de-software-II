@@ -15,6 +15,7 @@ import RenaultLogo from "./assets/Logos Vehiculos/Renault.png";
 import SuzukiLogo from "./assets/Logos Vehiculos/Suzuki.png";
 
 export default function Marcas({
+  usuario,
   onHome,
   onCatalogo,
   onLogin,
@@ -23,6 +24,11 @@ export default function Marcas({
   onFavoritos,
   cantidadCarrito,
   cantidadFavoritos,
+  onPerfil,
+  onDirecciones,
+  onMetodosPago,
+  onHistorial,
+  onCerrarSesion,
 }) {
   const marcas = [
     {
@@ -114,12 +120,18 @@ export default function Marcas({
 
       <Navbar
         paginaActual="marcas"
+        usuario={usuario}
         onHome={onHome}
         onCatalogo={onCatalogo}
         onLogin={onLogin}
         onMarcas={onMarcas}
         onCarrito={onCarrito}
         onFavoritos={onFavoritos}
+        onPerfil={onPerfil}
+        onDirecciones={onDirecciones}
+        onMetodosPago={onMetodosPago}
+        onHistorial={onHistorial}
+        onCerrarSesion={onCerrarSesion}
         cantidadCarrito={cantidadCarrito}
         cantidadFavoritos={cantidadFavoritos}
       />
@@ -216,7 +228,9 @@ export default function Marcas({
 
         </section>
 
-        {/* BANNER */}
+        {/* =====================================================
+            BANNER
+        ====================================================== */}
 
         <section className="max-w-[1100px] mx-auto px-6 pb-14">
 
