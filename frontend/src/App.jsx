@@ -13,14 +13,6 @@ function App() {
   const [categoriaCatalogo, setCategoriaCatalogo] = useState("Frenos");
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
-  const [carrito, setCarrito] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("autobought-carrito")) || [];
-    } catch {
-      return [];
-    }
-  });
-
   const [favoritos, setFavoritos] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("autobought-favoritos")) || [];
@@ -28,10 +20,6 @@ function App() {
       return [];
     }
   });
-
-  useEffect(() => {
-    localStorage.setItem("autobought-carrito", JSON.stringify(carrito));
-  }, [carrito]);
 
   useEffect(() => {
     localStorage.setItem("autobought-favoritos", JSON.stringify(favoritos));
@@ -50,41 +38,6 @@ function App() {
   const irAlCarrito = () => setPagina("carrito");
   const irAFavoritos = () => setPagina("favoritos");
 
-  const agregarAlCarrito = (producto, cantidad = 1) => {
-    const cantidadFinal = Math.max(1, Number(cantidad) || 1);
-
-    setCarrito((actual) => {
-      const existente = actual.find((item) => item.id === producto.id);
-
-      if (existente) {
-        return actual.map((item) =>
-          item.id === producto.id
-            ? { ...item, cantidad: item.cantidad + cantidadFinal }
-            : item
-        );
-      }
-
-      return [...actual, { ...producto, cantidad: cantidadFinal }];
-    });
-  };
-
-  const cambiarCantidad = (id, cambio) => {
-    setCarrito((actual) =>
-      actual
-        .map((item) =>
-          item.id === id
-            ? { ...item, cantidad: Math.max(1, item.cantidad + cambio) }
-            : item
-        )
-    );
-  };
-
-  const eliminarDelCarrito = (id) => {
-    setCarrito((actual) => actual.filter((item) => item.id !== id));
-  };
-
-  const vaciarCarrito = () => setCarrito([]);
-
   const alternarFavorito = (producto) => {
     setFavoritos((actual) => {
       const existe = actual.some((item) => item.id === producto.id);
@@ -96,11 +49,6 @@ function App() {
 
   const esFavorito = (id) => favoritos.some((item) => item.id === id);
 
-  const cantidadCarrito = carrito.reduce(
-    (total, item) => total + item.cantidad,
-    0
-  );
-
   const propsNavbar = {
     onHome: () => setPagina("home"),
     onCatalogo: irAlCatalogo,
@@ -108,7 +56,6 @@ function App() {
     onMarcas: () => setPagina("marcas"),
     onCarrito: irAlCarrito,
     onFavoritos: irAFavoritos,
-    cantidadCarrito,
     cantidadFavoritos: favoritos.length,
   };
 
@@ -123,9 +70,7 @@ function App() {
           {...propsNavbar}
           onDetalle={irAlDetalle}
           categoriaInicial={categoriaCatalogo}
-          carrito={carrito}
           favoritos={favoritos}
-          onAgregarAlCarrito={agregarAlCarrito}
           onAlternarFavorito={alternarFavorito}
           esFavorito={esFavorito}
         />
@@ -137,7 +82,6 @@ function App() {
           onDetalle={irAlDetalle}
           onCatalogo={irAlCatalogo}
           producto={productoSeleccionado}
-          onAgregarAlCarrito={agregarAlCarrito}
           onAlternarFavorito={alternarFavorito}
           esFavorito={esFavorito}
         />
@@ -148,7 +92,6 @@ function App() {
           {...propsNavbar}
           favoritos={favoritos}
           onAlternarFavorito={alternarFavorito}
-          onAgregarAlCarrito={agregarAlCarrito}
           onDetalle={irAlDetalle}
         />
       )}
@@ -156,14 +99,7 @@ function App() {
       {pagina === "login" && <Login {...propsNavbar} />}
 
       {pagina === "carrito" && (
-        <Carrito
-          {...propsNavbar}
-          productos={carrito}
-          onCambiarCantidad={cambiarCantidad}
-          onEliminarProducto={eliminarDelCarrito}
-          onVaciarCarrito={vaciarCarrito}
-          onDetalle={irAlDetalle}
-        />
+        <Carrito {...propsNavbar} onDetalle={irAlDetalle} />
       )}
     </>
   );

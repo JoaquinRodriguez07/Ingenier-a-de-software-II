@@ -1,3 +1,5 @@
+import { useCart } from "./context/CartContext";
+
 export default function Navbar({
   paginaActual,
   onHome,
@@ -6,8 +8,9 @@ export default function Navbar({
   onMarcas,
   onCarrito,
   onFavoritos,
-  cantidadCarrito = 0,
 }) {
+  const { cantidadCarrito } = useCart();
+
   return (
     <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-32px)] max-w-[1085px] h-14 bg-white rounded-xl shadow-xl px-5 md:px-6 flex items-center justify-between">
 

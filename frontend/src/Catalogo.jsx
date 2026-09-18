@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "./Navbar";
 import { categorias, productos } from "./productos";
+import { useCart } from "./context/CartContext";
 
 export default function Catalogo({
   onHome, onLogin, onMarcas, onDetalle, onCarrito,
-  onFavoritos, cantidadCarrito, cantidadFavoritos,
-  categoriaInicial, onAgregarAlCarrito, onAlternarFavorito, esFavorito,
+  onFavoritos, cantidadFavoritos,
+  categoriaInicial, onAlternarFavorito, esFavorito,
 }) {
+  const { addToCart } = useCart();
   const [categoria, setCategoria] = useState(categoriaInicial || "Frenos");
   const [orden, setOrden] = useState("Más relevantes");
   const [busqueda, setBusqueda] = useState("");
@@ -29,15 +31,17 @@ export default function Catalogo({
     return lista;
   }, [categoria, busqueda, orden]);
 
-  const cambiarCantidad = (id, cambio) => {
-    setCantidades((actual) => ({
-      ...actual,
-      [id]: Math.max(1, (actual[id] || 1) + cambio),
-    }));
+  const cambiarCantidad = (producto, cambio) => {
+    setCantidades((actual) => {
+      const actualCant = actual[producto.id] || 1;
+      const nueva = Math.min(producto.stock, Math.max(1, actualCant + cambio));
+      return { ...actual, [producto.id]: nueva };
+    });
   };
 
   const agregar = (producto) => {
-    onAgregarAlCarrito(producto, cantidades[producto.id] || 1);
+    if (producto.stock === 0) return;
+    addToCart(producto, cantidades[producto.id] || 1);
     setCantidades((actual) => ({ ...actual, [producto.id]: 1 }));
   };
 
@@ -47,7 +51,7 @@ export default function Catalogo({
         paginaActual="catalogo"
         onHome={onHome} onCatalogo={() => {}} onLogin={onLogin}
         onMarcas={onMarcas} onCarrito={onCarrito} onFavoritos={onFavoritos}
-        cantidadCarrito={cantidadCarrito} cantidadFavoritos={cantidadFavoritos}
+        cantidadFavoritos={cantidadFavoritos}
       />
 
       <main className="pt-[88px]">
@@ -126,14 +130,28 @@ export default function Catalogo({
                         <h3 className="text-[11px] font-bold mt-2 leading-tight min-h-[30px]">{producto.nombre}</h3>
                         <p className="text-[9px] text-gray-400 mt-2">Código: {producto.codigo}</p>
                         <p className="text-lg font-black mt-4">${producto.precio.toLocaleString("es-UY")}</p>
-                        <p className="text-[9px] text-green-600 font-bold mt-2">En stock · {producto.stock} unidades</p>
+                        {producto.stock === 0 ? (
+                          <p className="text-[9px] text-red-500 font-bold mt-2">Sin stock</p>
+                        ) : (
+                          <p className="text-[9px] text-green-600 font-bold mt-2">En stock · {producto.stock} unidades</p>
+                        )}
                         <div className="flex items-center justify-between mt-4">
                           <div className="flex border border-gray-200 rounded-md">
-                            <button onClick={() => cambiarCantidad(producto.id, -1)} className="w-7 h-8">−</button>
-                            <span className="w-7 flex items-center justify-center text-[9px]">{cantidad}</span>
-                            <button onClick={() => cambiarCantidad(producto.id, 1)} className="w-7 h-8">+</button>
+                            <button onClick={() => cambiarCantidad(producto, -1)} disabled={producto.stock === 0} className="w-7 h-8 disabled:opacity-40">−</button>
+                            <span className="w-7 flex items-center justify-center text-[9px]">{producto.stock === 0 ? 0 : cantidad}</span>
+                            <button onClick={() => cambiarCantidad(producto, 1)} disabled={producto.stock === 0 || cantidad >= producto.stock} className="w-7 h-8 disabled:opacity-40">+</button>
                           </div>
-                          <button onClick={() => agregar(producto)} className="bg-orange-500 hover:bg-orange-600 text-white px-3 h-8 rounded-md text-[8px] font-black">🛒 AGREGAR</button>
+                          <button
+                            onClick={() => agregar(producto)}
+                            disabled={producto.stock === 0}
+                            className={`px-3 h-8 rounded-md text-[8px] font-black ${
+                              producto.stock === 0
+                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                : "bg-orange-500 hover:bg-orange-600 text-white"
+                            }`}
+                          >
+                            {producto.stock === 0 ? "SIN STOCK" : "🛒 AGREGAR"}
+                          </button>
                         </div>
                         <button onClick={() => onDetalle(producto)}
                           className="w-full h-9 mt-2 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white rounded-md text-[9px] font-bold transition">
