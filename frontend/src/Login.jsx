@@ -10,19 +10,81 @@ export default function Login({
   onFavoritos,
   cantidadCarrito,
   cantidadFavoritos,
+  onIniciarSesion,
+  onRegistro,
 }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
 
+  const [error, setError] = useState("");
+
+  const iniciarSesion = (e) => {
+    e.preventDefault();
+
+    setError("");
+
+    if (!email.trim() || !password) {
+      setError("Completá el correo electrónico y la contraseña.");
+      return;
+    }
+
+    let usuarios = [];
+
+    try {
+      usuarios =
+        JSON.parse(
+          localStorage.getItem("autobought-usuarios")
+        ) || [];
+    } catch {
+      usuarios = [];
+    }
+
+    const usuarioEncontrado = usuarios.find(
+      (usuario) =>
+        usuario.email.toLowerCase() ===
+          email.trim().toLowerCase() &&
+        usuario.password === password
+    );
+
+    if (!usuarioEncontrado) {
+      setError("Correo electrónico o contraseña incorrectos.");
+      return;
+    }
+
+    const usuarioSesion = {
+      id: usuarioEncontrado.id,
+      nombre: usuarioEncontrado.nombre,
+      apellido: usuarioEncontrado.apellido,
+      email: usuarioEncontrado.email,
+      telefono: usuarioEncontrado.telefono,
+    };
+
+    if (remember) {
+      localStorage.setItem(
+        "autobought-sesion",
+        JSON.stringify(usuarioSesion)
+      );
+    } else {
+      sessionStorage.setItem(
+        "autobought-sesion",
+        JSON.stringify(usuarioSesion)
+      );
+    }
+
+    onIniciarSesion(usuarioSesion, remember);
+  };
+
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-fixed flex flex-col font-sans"
+      className="min-h-screen flex flex-col font-sans"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(0,0,0,0.72), rgba(0,0,0,0.72)), url('/src/assets/respuestos.jpg')",
+          "linear-gradient(rgba(0,0,0,1), rgb(73, 34, 2))",
       }}
     >
-
       {/* =====================================================
           NAVBAR
       ====================================================== */}
@@ -51,9 +113,10 @@ export default function Login({
               FORMULARIO
           ================================================== */}
 
-          <div className="p-8 md:p-12 flex flex-col justify-center">
-
-            {/* TITULO */}
+          <form
+            onSubmit={iniciarSesion}
+            className="p-8 md:p-12 flex flex-col justify-center"
+          >
 
             <p className="text-orange-500 text-[9px] font-black tracking-[4px]">
               AUTOBOUGHT
@@ -68,6 +131,16 @@ export default function Login({
             </p>
 
             {/* =================================================
+                ERROR
+            ================================================== */}
+
+            {error && (
+              <div className="mt-5 bg-red-50 border border-red-200 text-red-500 rounded-md px-4 py-3 text-[9px] font-semibold">
+                {error}
+              </div>
+            )}
+
+            {/* =================================================
                 EMAIL
             ================================================== */}
 
@@ -79,6 +152,8 @@ export default function Login({
 
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
                 className="w-full mt-2 h-11 px-4 bg-gray-50 border border-gray-200 rounded-md text-[10px] outline-none focus:border-orange-500 transition"
               />
@@ -110,11 +185,11 @@ export default function Login({
 
                 <input
                   type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full mt-2 h-11 px-4 pr-12 bg-gray-50 border border-gray-200 rounded-md text-[10px] outline-none focus:border-orange-500 transition"
                 />
-
-                {/* MOSTRAR / OCULTAR */}
 
                 <button
                   type="button"
@@ -156,7 +231,7 @@ export default function Login({
             ================================================== */}
 
             <button
-              type="button"
+              type="submit"
               className="w-full h-11 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-[10px] font-black mt-6 transition"
             >
               INICIAR SESIÓN
@@ -188,6 +263,7 @@ export default function Login({
 
               <button
                 type="button"
+                onClick={onRegistro}
                 className="text-orange-500 font-bold ml-1 hover:underline"
               >
                 Registrate
@@ -195,7 +271,7 @@ export default function Login({
 
             </p>
 
-          </div>
+          </form>
 
           {/* =================================================
               PANEL DERECHO / IMAGEN
@@ -204,22 +280,14 @@ export default function Login({
           <div className="hidden md:block relative overflow-hidden">
 
             <img
-              src="/src/assets/respuestos.jpg"
+              src="/src/assets/repuestos.jpg"
               alt="AutoBought"
               className="absolute inset-0 w-full h-full object-cover"
             />
 
-            {/* OSCURECER IMAGEN */}
-
             <div className="absolute inset-0 bg-black/45" />
 
-            {/* DEGRADADO */}
-
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-
-            {/* =================================================
-                TEXTO SOBRE LA IMAGEN
-            ================================================== */}
 
             <div className="absolute bottom-10 left-8 right-8">
 

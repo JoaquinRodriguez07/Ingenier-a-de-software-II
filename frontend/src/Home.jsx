@@ -16,12 +16,29 @@ import SuzukiLogo from "./assets/Logos Vehiculos/Suzuki.png";
 import VolkswagenLogo from "./assets/Logos Vehiculos/Volkswagen.webp";
 
 export default function Home({
+  // ==========================================
+  // NAVBAR
+  // ==========================================
+  usuario,
   onHome,
   onLogin,
   onCatalogo,
   onMarcas,
   onCarrito,
   onFavoritos,
+
+  // ==========================================
+  // MENÚ DE USUARIO
+  // ==========================================
+  onPerfil,
+  onDirecciones,
+  onMetodosPago,
+  onHistorial,
+  onCerrarSesion,
+
+  // ==========================================
+  // CONTADORES
+  // ==========================================
   cantidadCarrito,
   cantidadFavoritos,
 }) {
@@ -131,12 +148,26 @@ export default function Home({
 
       <Navbar
         paginaActual="home"
+
+        usuario={usuario}
+
         onHome={onHome}
         onCatalogo={onCatalogo}
         onLogin={onLogin}
         onMarcas={onMarcas}
         onCarrito={onCarrito}
         onFavoritos={onFavoritos}
+
+        // ==========================================
+        // MENÚ DE USUARIO
+        // ==========================================
+
+        onPerfil={onPerfil}
+        onDirecciones={onDirecciones}
+        onMetodosPago={onMetodosPago}
+        onHistorial={onHistorial}
+        onCerrarSesion={onCerrarSesion}
+
         cantidadCarrito={cantidadCarrito}
         cantidadFavoritos={cantidadFavoritos}
       />
@@ -216,10 +247,12 @@ export default function Home({
               </p>
 
               <select className="w-full bg-white rounded-md px-3 py-3 text-[10px] outline-none">
+
                 <option>Volkswagen</option>
                 <option>Chevrolet</option>
                 <option>Fiat</option>
                 <option>Renault</option>
+
               </select>
 
             </div>
@@ -231,10 +264,12 @@ export default function Home({
               </p>
 
               <select className="w-full bg-white rounded-md px-3 py-3 text-[10px] outline-none">
+
                 <option>Gol</option>
                 <option>Polo</option>
                 <option>Nivus</option>
                 <option>Virtus</option>
+
               </select>
 
             </div>
@@ -246,10 +281,12 @@ export default function Home({
               </p>
 
               <select className="w-full bg-white rounded-md px-3 py-3 text-[10px] outline-none">
+
                 <option>2019</option>
                 <option>2020</option>
                 <option>2021</option>
                 <option>2022</option>
+
               </select>
 
             </div>
@@ -298,8 +335,6 @@ export default function Home({
 
         </div>
 
-        {/* CATEGORÍAS */}
-
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
 
           {categorias.map((categoria) => (
@@ -310,11 +345,9 @@ export default function Home({
               onClick={() => onCatalogo(categoria)}
               className="h-24 bg-white border border-gray-200 rounded-xl hover:border-orange-400 hover:shadow-md hover:-translate-y-1 transition duration-300 flex items-center justify-center"
             >
-
               <p className="text-[10px] font-bold">
                 {categoria}
               </p>
-
             </button>
 
           ))}
@@ -352,10 +385,6 @@ export default function Home({
           </button>
 
         </div>
-
-        {/* =================================================
-            LOGOS
-        ================================================== */}
 
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
 
@@ -475,7 +504,9 @@ export default function Home({
 
                   <button
                     type="button"
-                    onClick={() => onCatalogo(producto.categoria)}
+                    onClick={() =>
+                      onCatalogo(producto.categoria)
+                    }
                     className="w-full mt-3 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white rounded-md py-2 text-[9px] font-bold transition"
                   >
                     VER REPUESTOS
@@ -502,7 +533,10 @@ export default function Home({
         <div className="max-w-[1100px] mx-auto px-6 md:px-10 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
 
           <div>
-            <p className="text-orange-500 text-xl">✓</p>
+
+            <p className="text-orange-500 text-xl">
+              ✓
+            </p>
 
             <h3 className="text-white text-[11px] font-black mt-2">
               REPUESTOS DE CALIDAD
@@ -511,10 +545,14 @@ export default function Home({
             <p className="text-gray-500 text-[9px] mt-2">
               Trabajamos con marcas reconocidas.
             </p>
+
           </div>
 
           <div>
-            <p className="text-orange-500 text-xl">✓</p>
+
+            <p className="text-orange-500 text-xl">
+              ✓
+            </p>
 
             <h3 className="text-white text-[11px] font-black mt-2">
               COMPATIBILIDAD
@@ -523,10 +561,14 @@ export default function Home({
             <p className="text-gray-500 text-[9px] mt-2">
               Encontrá piezas compatibles con tu vehículo.
             </p>
+
           </div>
 
           <div>
-            <p className="text-orange-500 text-xl">✓</p>
+
+            <p className="text-orange-500 text-xl">
+              ✓
+            </p>
 
             <h3 className="text-white text-[11px] font-black mt-2">
               ENVÍOS A TODO EL PAÍS
@@ -535,6 +577,7 @@ export default function Home({
             <p className="text-gray-500 text-[9px] mt-2">
               Recibí tus repuestos donde estés.
             </p>
+
           </div>
 
         </div>
