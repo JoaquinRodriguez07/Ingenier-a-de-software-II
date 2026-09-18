@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 
 import Home from "./Home";
 import Login from "./Login";
@@ -12,9 +13,10 @@ import DetalleProducto from "./DetalleProducto";
 import Marcas from "./Marcas";
 import Carrito from "./Carrito";
 import Favoritos from "./Favoritos";
+import ProtectedRoute from "./ProtectedRoute";
 
 function App() {
-  const [pagina, setPagina] = useState("home");
+  const navigate = useNavigate();
 
   const [categoriaCatalogo, setCategoriaCatalogo] =
     useState("Frenos");
@@ -182,29 +184,30 @@ function App() {
 
   /* =====================================================
      NAVEGACIÓN
+     (antes: setPagina("x") — ahora: navigate("/x"))
   ====================================================== */
 
   const irAlCatalogo = (categoria = "Frenos") => {
     setCategoriaCatalogo(categoria);
-    setPagina("catalogo");
+    navigate("/catalogo");
   };
 
   const irAlDetalle = (producto) => {
     setProductoSeleccionado(producto);
-    setPagina("detalle");
+    navigate("/producto");
   };
 
   const irAlCarrito = () => {
-    setPagina("carrito");
+    navigate("/carrito");
   };
 
   const irAFavoritos = () => {
     if (!usuario) {
-      setPagina("login");
+      navigate("/login");
       return;
     }
 
-    setPagina("favoritos");
+    navigate("/favoritos");
   };
 
   /* =====================================================
@@ -224,7 +227,7 @@ function App() {
       );
     }
 
-    setPagina("home");
+    navigate("/");
   };
 
   /* =====================================================
@@ -239,7 +242,7 @@ function App() {
       JSON.stringify(usuarioNuevo)
     );
 
-    setPagina("home");
+    navigate("/");
   };
 
   /* =====================================================
@@ -266,7 +269,7 @@ function App() {
       "autobought-sesion"
     );
 
-    setPagina("home");
+    navigate("/");
   };
 
   /* =====================================================
@@ -278,7 +281,7 @@ function App() {
     cantidad = 1
   ) => {
     if (!usuario) {
-      setPagina("login");
+      navigate("/login");
       return;
     }
 
@@ -352,7 +355,7 @@ function App() {
 
   const alternarFavorito = (producto) => {
     if (!usuario) {
-      setPagina("login");
+      navigate("/login");
       return;
     }
 
@@ -390,275 +393,250 @@ function App() {
   ====================================================== */
 
   const propsNavbar = {
-  usuario,
+    usuario,
 
-  onHome: () => setPagina("home"),
+    onHome: () => navigate("/"),
 
-  onCatalogo: irAlCatalogo,
+    onCatalogo: irAlCatalogo,
 
-  onLogin: () => {
-    if (usuario) {
-      setPagina("perfil");
-    } else {
-      setPagina("login");
-    }
-  },
+    onLogin: () => {
+      if (usuario) {
+        navigate("/perfil");
+      } else {
+        navigate("/login");
+      }
+    },
 
-  onMarcas: () => setPagina("marcas"),
+    onMarcas: () => navigate("/marcas"),
 
-  onCarrito: irAlCarrito,
+    onCarrito: irAlCarrito,
 
-  onFavoritos: irAFavoritos,
+    onFavoritos: irAFavoritos,
 
-  // ==========================================
-  // ACCESOS DEL MENÚ DE USUARIO
-  // ==========================================
+    // ==========================================
+    // ACCESOS DEL MENÚ DE USUARIO
+    // ==========================================
 
-  onPerfil: () => {
-    setPagina("perfil");
-  },
+    onPerfil: () => navigate("/perfil"),
 
-  onDirecciones: () => {
-    setPagina("direcciones");
-  },
+    onDirecciones: () => navigate("/direcciones"),
 
-  onMetodosPago: () => {
-    setPagina("metodosPago");
-  },
+    onMetodosPago: () => navigate("/metodos-pago"),
 
-  onHistorial: () => {
-    setPagina("historialCompras");
-  },
+    onHistorial: () => navigate("/historial"),
 
-  onCerrarSesion: cerrarSesion,
+    onCerrarSesion: cerrarSesion,
 
-  // ==========================================
-  // CONTADORES
-  // ==========================================
+    // ==========================================
+    // CONTADORES
+    // ==========================================
 
-  cantidadCarrito,
+    cantidadCarrito,
 
-  cantidadFavoritos: favoritos.length,
-};
+    cantidadFavoritos: favoritos.length,
+  };
 
   /* =====================================================
      RENDER
   ====================================================== */
 
   return (
-    <>
+    <Routes>
       {/* =================================================
           HOME
       ================================================== */}
 
-      {pagina === "home" && (
-        <Home {...propsNavbar} />
-      )}
+      <Route
+        path="/"
+        element={<Home {...propsNavbar} />}
+      />
 
       {/* =================================================
           MARCAS
       ================================================== */}
 
-      {pagina === "marcas" && (
-        <Marcas {...propsNavbar} />
-      )}
-
-      {/* =================================================
-          CATÁLOGO
-      ================================================== */}
-
-      {pagina === "catalogo" && (
-        <Catalogo
-          {...propsNavbar}
-          onDetalle={irAlDetalle}
-          categoriaInicial={
-            categoriaCatalogo
-          }
-          carrito={carrito}
-          favoritos={favoritos}
-          onAgregarAlCarrito={
-            agregarAlCarrito
-          }
-          onAlternarFavorito={
-            alternarFavorito
-          }
-          esFavorito={esFavorito}
-        />
-      )}
-
-      {/* =================================================
-          DETALLE
-      ================================================== */}
-
-      {pagina === "detalle" && (
-        <DetalleProducto
-          {...propsNavbar}
-          onDetalle={irAlDetalle}
-          onCatalogo={irAlCatalogo}
-          producto={
-            productoSeleccionado
-          }
-          onAgregarAlCarrito={
-            agregarAlCarrito
-          }
-          onAlternarFavorito={
-            alternarFavorito
-          }
-          esFavorito={esFavorito}
-        />
-      )}
-
-      {/* =================================================
-          FAVORITOS
-      ================================================== */}
-
-      {pagina === "favoritos" &&
-        usuario && (
-          <Favoritos
-            {...propsNavbar}
-            favoritos={favoritos}
-            onAlternarFavorito={
-              alternarFavorito
-            }
-            onAgregarAlCarrito={
-              agregarAlCarrito
-            }
-            onDetalle={irAlDetalle}
-          />
-        )}
+      <Route
+        path="/marcas"
+        element={<Marcas {...propsNavbar} />}
+      />
 
       {/* =================================================
           LOGIN
       ================================================== */}
 
-      {pagina === "login" && (
-        <Login
-          {...propsNavbar}
-          onIniciarSesion={
-            iniciarSesion
-          }
-          onRegistro={() =>
-            setPagina("registro")
-          }
-        />
-      )}
+      <Route
+        path="/login"
+        element={
+          <Login
+            {...propsNavbar}
+            onIniciarSesion={iniciarSesion}
+            onRegistro={() => navigate("/registro")}
+          />
+        }
+      />
 
       {/* =================================================
           REGISTRO
       ================================================== */}
 
-      {pagina === "registro" && (
-        <Registro
-          {...propsNavbar}
-          onRegistroExitoso={
-            registroExitoso
+      <Route
+        path="/registro"
+        element={
+          <Registro
+            {...propsNavbar}
+            onRegistroExitoso={registroExitoso}
+          />
+        }
+      />
+
+      {/* =================================================
+          RUTAS PROTEGIDAS
+          (requieren sesión activa — subtask 2)
+      ================================================== */}
+
+      <Route element={<ProtectedRoute />}>
+        <Route
+          path="/catalogo"
+          element={
+            <Catalogo
+              {...propsNavbar}
+              onDetalle={irAlDetalle}
+              categoriaInicial={categoriaCatalogo}
+              carrito={carrito}
+              favoritos={favoritos}
+              onAgregarAlCarrito={agregarAlCarrito}
+              onAlternarFavorito={alternarFavorito}
+              esFavorito={esFavorito}
+            />
           }
         />
-      )}
+
+        <Route
+          path="/producto"
+          element={
+            <DetalleProducto
+              {...propsNavbar}
+              onDetalle={irAlDetalle}
+              onCatalogo={irAlCatalogo}
+              producto={productoSeleccionado}
+              onAgregarAlCarrito={agregarAlCarrito}
+              onAlternarFavorito={alternarFavorito}
+              esFavorito={esFavorito}
+            />
+          }
+        />
+
+        <Route
+          path="/carrito"
+          element={
+            <Carrito
+              {...propsNavbar}
+              productos={carrito}
+              onCambiarCantidad={cambiarCantidad}
+              onEliminarProducto={eliminarDelCarrito}
+              onVaciarCarrito={vaciarCarrito}
+              onDetalle={irAlDetalle}
+            />
+          }
+        />
+      </Route>
+
+      {/* =================================================
+          FAVORITOS
+          (mismo comportamiento de antes: pantalla en
+          blanco si no hay sesión — no forma parte del
+          DoD de esta tarea)
+      ================================================== */}
+
+      <Route
+        path="/favoritos"
+        element={
+          usuario ? (
+            <Favoritos
+              {...propsNavbar}
+              favoritos={favoritos}
+              onAlternarFavorito={alternarFavorito}
+              onAgregarAlCarrito={agregarAlCarrito}
+              onDetalle={irAlDetalle}
+            />
+          ) : null
+        }
+      />
 
       {/* =================================================
           PERFIL
       ================================================== */}
 
-      {pagina === "perfil" &&
-        usuario && (
-          <Perfil
-            {...propsNavbar}
-            usuario={usuario}
-            onCerrarSesion={
-              cerrarSesion
-            }
-            onActualizarUsuario={
-              actualizarUsuario
-            }
-            onDirecciones={() =>
-              setPagina("direcciones")
-            }
-            onMetodosPago={() =>
-              setPagina("metodosPago")
-            }
-            onHistorialCompras={() =>
-              setPagina(
-                "historialCompras"
-              )
-            }
-          />
-        )}
+      <Route
+        path="/perfil"
+        element={
+          usuario ? (
+            <Perfil
+              {...propsNavbar}
+              usuario={usuario}
+              onCerrarSesion={cerrarSesion}
+              onActualizarUsuario={actualizarUsuario}
+              onDirecciones={() => navigate("/direcciones")}
+              onMetodosPago={() => navigate("/metodos-pago")}
+              onHistorialCompras={() => navigate("/historial")}
+            />
+          ) : null
+        }
+      />
 
       {/* =================================================
           DIRECCIONES
       ================================================== */}
 
-      {pagina === "direcciones" &&
-        usuario && (
-          <Direcciones
-            {...propsNavbar}
-            direcciones={direcciones}
-            setDirecciones={
-              setDirecciones
-            }
-            onPerfil={() =>
-              setPagina("perfil")
-            }
-          />
-        )}
+      <Route
+        path="/direcciones"
+        element={
+          usuario ? (
+            <Direcciones
+              {...propsNavbar}
+              direcciones={direcciones}
+              setDirecciones={setDirecciones}
+              onPerfil={() => navigate("/perfil")}
+            />
+          ) : null
+        }
+      />
 
       {/* =================================================
           MÉTODOS DE PAGO
       ================================================== */}
 
-      {pagina === "metodosPago" &&
-        usuario && (
-          <MetodosPago
-            {...propsNavbar}
-            metodosPago={metodosPago}
-            setMetodosPago={
-              setMetodosPago
-            }
-            onPerfil={() =>
-              setPagina("perfil")
-            }
-          />
-        )}
+      <Route
+        path="/metodos-pago"
+        element={
+          usuario ? (
+            <MetodosPago
+              {...propsNavbar}
+              metodosPago={metodosPago}
+              setMetodosPago={setMetodosPago}
+              onPerfil={() => navigate("/perfil")}
+            />
+          ) : null
+        }
+      />
 
       {/* =================================================
           HISTORIAL DE COMPRAS
       ================================================== */}
 
-      {pagina === "historialCompras" &&
-        usuario && (
-          <HistorialCompras
-            {...propsNavbar}
-            historialCompras={
-              historialCompras
-            }
-            onPerfil={() =>
-              setPagina("perfil")
-            }
-          />
-        )}
-
-      {/* =================================================
-          CARRITO
-      ================================================== */}
-
-      {pagina === "carrito" && (
-        <Carrito
-          {...propsNavbar}
-          productos={carrito}
-          onCambiarCantidad={
-            cambiarCantidad
-          }
-          onEliminarProducto={
-            eliminarDelCarrito
-          }
-          onVaciarCarrito={
-            vaciarCarrito
-          }
-          onDetalle={irAlDetalle}
-        />
-      )}
-    </>
+      <Route
+        path="/historial"
+        element={
+          usuario ? (
+            <HistorialCompras
+              {...propsNavbar}
+              historialCompras={historialCompras}
+              onPerfil={() => navigate("/perfil")}
+            />
+          ) : null
+        }
+      />
+    </Routes>
   );
 }
 
