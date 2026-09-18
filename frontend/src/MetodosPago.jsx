@@ -1,0 +1,404 @@
+import { useState } from "react";
+import Navbar from "./Navbar";
+
+export default function MetodosPago({
+  onHome,
+  onCatalogo,
+  onLogin,
+  onMarcas,
+  onCarrito,
+  onFavoritos,
+  cantidadCarrito = 0,
+  cantidadFavoritos = 0,
+  onPerfil,
+}) {
+  const [metodos, setMetodos] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("autobought-metodos-pago")
+      ) || [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+  const [formulario, setFormulario] = useState({
+    tipo: "Visa",
+    titular: "",
+    numero: "",
+    vencimiento: "",
+    cvv: "",
+  });
+
+  const guardarMetodos = (nuevosMetodos) => {
+    setMetodos(nuevosMetodos);
+
+    localStorage.setItem(
+      "autobought-metodos-pago",
+      JSON.stringify(nuevosMetodos)
+    );
+  };
+
+  const manejarCambio = (e) => {
+    const { name, value } = e.target;
+
+    setFormulario((actual) => ({
+      ...actual,
+      [name]: value,
+    }));
+  };
+
+  const formatearTarjeta = (numero) => {
+    const limpio = numero.replace(/\D/g, "");
+
+    return limpio.replace(/(.{4})/g, "$1 ").trim();
+  };
+
+  const agregarMetodo = (e) => {
+    e.preventDefault();
+
+    if (
+      !formulario.titular ||
+      !formulario.numero ||
+      !formulario.vencimiento ||
+      !formulario.cvv
+    ) {
+      alert("Completá todos los campos.");
+      return;
+    }
+
+    const numeroLimpio = formulario.numero.replace(/\D/g, "");
+
+    if (numeroLimpio.length < 13) {
+      alert("Ingresá un número de tarjeta válido.");
+      return;
+    }
+
+    const nuevoMetodo = {
+      id: Date.now(),
+      tipo: formulario.tipo,
+      titular: formulario.titular,
+      numero: numeroLimpio.slice(-4),
+      vencimiento: formulario.vencimiento,
+      principal: metodos.length === 0,
+    };
+
+    guardarMetodos([
+      ...metodos,
+      nuevoMetodo,
+    ]);
+
+    setFormulario({
+      tipo: "Visa",
+      titular: "",
+      numero: "",
+      vencimiento: "",
+      cvv: "",
+    });
+
+    setMostrarFormulario(false);
+  };
+
+  const eliminarMetodo = (id) => {
+    const nuevosMetodos = metodos.filter(
+      (metodo) => metodo.id !== id
+    );
+
+    guardarMetodos(nuevosMetodos);
+  };
+
+  const marcarPrincipal = (id) => {
+    const nuevosMetodos = metodos.map(
+      (metodo) => ({
+        ...metodo,
+        principal: metodo.id === id,
+      })
+    );
+
+    guardarMetodos(nuevosMetodos);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col font-sans bg-gradient-to-b from-black to-[#492202]">
+
+      <Navbar
+        paginaActual="perfil"
+        onHome={onHome}
+        onCatalogo={onCatalogo}
+        onLogin={onLogin}
+        onMarcas={onMarcas}
+        onCarrito={onCarrito}
+        onFavoritos={onFavoritos}
+        cantidadCarrito={cantidadCarrito}
+        cantidadFavoritos={cantidadFavoritos}
+      />
+
+      <main className="min-h-screen flex items-center justify-center px-5 pt-24 pb-10">
+
+        <div className="w-full max-w-[950px] bg-white rounded-2xl shadow-2xl overflow-hidden">
+
+          {/* ENCABEZADO */}
+
+          <div className="bg-gray-50 border-b border-gray-200 px-8 md:px-12 py-8">
+
+            <button
+              type="button"
+              onClick={onPerfil}
+              className="text-orange-500 text-[9px] font-bold hover:underline mb-4"
+            >
+              ← VOLVER A MI PERFIL
+            </button>
+
+            <p className="text-orange-500 text-[9px] font-black tracking-[4px]">
+              AUTOBOUGHT
+            </p>
+
+            <h1 className="text-3xl font-black italic uppercase mt-2 text-gray-900">
+              MÉTODOS DE PAGO
+            </h1>
+
+            <p className="text-gray-400 text-[10px] mt-2">
+              Administrá tus tarjetas y métodos de pago.
+            </p>
+
+          </div>
+
+          <div className="p-8 md:p-12">
+
+            {/* AGREGAR */}
+
+            <div className="flex justify-end mb-8">
+
+              <button
+                type="button"
+                onClick={() =>
+                  setMostrarFormulario(!mostrarFormulario)
+                }
+                className="h-10 px-6 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-[9px] font-black transition"
+              >
+                {mostrarFormulario
+                  ? "CANCELAR"
+                  : "+ AGREGAR TARJETA"}
+              </button>
+
+            </div>
+
+            {/* FORMULARIO */}
+
+            {mostrarFormulario && (
+              <form
+                onSubmit={agregarMetodo}
+                className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8"
+              >
+
+                <h2 className="text-sm font-black uppercase text-gray-900 mb-5">
+                  NUEVO MÉTODO DE PAGO
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                  <div>
+                    <label className="text-[9px] font-bold text-gray-500">
+                      TIPO DE TARJETA
+                    </label>
+
+                    <select
+                      name="tipo"
+                      value={formulario.tipo}
+                      onChange={manejarCambio}
+                      className="w-full mt-2 h-11 px-4 bg-white border border-gray-200 rounded-md text-[10px] outline-none focus:border-orange-500"
+                    >
+                      <option value="Visa">
+                        Visa
+                      </option>
+
+                      <option value="Mastercard">
+                        Mastercard
+                      </option>
+
+                      <option value="American Express">
+                        American Express
+                      </option>
+
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-bold text-gray-500">
+                      TITULAR *
+                    </label>
+
+                    <input
+                      name="titular"
+                      value={formulario.titular}
+                      onChange={manejarCambio}
+                      placeholder="Nombre del titular"
+                      className="w-full mt-2 h-11 px-4 bg-white border border-gray-200 rounded-md text-[10px] outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-bold text-gray-500">
+                      NÚMERO DE TARJETA *
+                    </label>
+
+                    <input
+                      name="numero"
+                      value={formatearTarjeta(formulario.numero)}
+                      onChange={(e) =>
+                        setFormulario((actual) => ({
+                          ...actual,
+                          numero: e.target.value.replace(/\D/g, ""),
+                        }))
+                      }
+                      maxLength={19}
+                      placeholder="1234 5678 9012 3456"
+                      className="w-full mt-2 h-11 px-4 bg-white border border-gray-200 rounded-md text-[10px] outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-bold text-gray-500">
+                      VENCIMIENTO *
+                    </label>
+
+                    <input
+                      name="vencimiento"
+                      value={formulario.vencimiento}
+                      onChange={manejarCambio}
+                      placeholder="MM/AA"
+                      maxLength={5}
+                      className="w-full mt-2 h-11 px-4 bg-white border border-gray-200 rounded-md text-[10px] outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-bold text-gray-500">
+                      CVV *
+                    </label>
+
+                    <input
+                      type="password"
+                      name="cvv"
+                      value={formulario.cvv}
+                      onChange={manejarCambio}
+                      placeholder="•••"
+                      maxLength={4}
+                      className="w-full mt-2 h-11 px-4 bg-white border border-gray-200 rounded-md text-[10px] outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                </div>
+
+                <p className="text-[8px] text-gray-400 mt-5">
+                  Por seguridad, el código CVV no se guarda.
+                </p>
+
+                <div className="flex justify-end mt-5">
+
+                  <button
+                    type="submit"
+                    className="h-10 px-6 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-[9px] font-black"
+                  >
+                    GUARDAR TARJETA
+                  </button>
+
+                </div>
+
+              </form>
+            )}
+
+            {/* TARJETAS */}
+
+            {metodos.length === 0 ? (
+
+              <div className="text-center py-16">
+
+                <p className="text-gray-400 text-sm">
+                  No tenés métodos de pago guardados.
+                </p>
+
+                <p className="text-gray-300 text-[9px] mt-2">
+                  Agregá una tarjeta para utilizarla durante tus compras.
+                </p>
+
+              </div>
+
+            ) : (
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                {metodos.map((metodo) => (
+
+                  <div
+                    key={metodo.id}
+                    className="border border-gray-200 rounded-xl p-6 relative"
+                  >
+
+                    {metodo.principal && (
+                      <span className="absolute top-4 right-4 text-[7px] font-black bg-orange-100 text-orange-500 px-2 py-1 rounded">
+                        PRINCIPAL
+                      </span>
+                    )}
+
+                    <p className="text-orange-500 text-[9px] font-black tracking-[2px]">
+                      {metodo.tipo}
+                    </p>
+
+                    <p className="text-xl font-black text-gray-900 mt-4 tracking-[3px]">
+                      •••• •••• •••• {metodo.numero}
+                    </p>
+
+                    <p className="text-[9px] text-gray-500 mt-4">
+                      {metodo.titular}
+                    </p>
+
+                    <p className="text-[9px] text-gray-400 mt-1">
+                      Vence: {metodo.vencimiento}
+                    </p>
+
+                    <div className="flex gap-3 mt-6">
+
+                      {!metodo.principal && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            marcarPrincipal(metodo.id)
+                          }
+                          className="text-[8px] text-orange-500 font-bold hover:underline"
+                        >
+                          MARCAR PRINCIPAL
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          eliminarMetodo(metodo.id)
+                        }
+                        className="text-[8px] text-red-500 font-bold hover:underline"
+                      >
+                        ELIMINAR
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                ))}
+
+              </div>
+
+            )}
+
+          </div>
+
+        </div>
+
+      </main>
+
+    </div>
+  );
+}
