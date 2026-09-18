@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import Logo from "./assets/logo.png";
+import Logo from "frontend/src/assets/logo.png";
 
 export default function Navbar({
   paginaActual,
