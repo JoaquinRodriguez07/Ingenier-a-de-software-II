@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Navbar from "./Navbar";
 import SearchBar from "./SearchBar";
 import { filtrarRepuestos } from "./filtrarRepuestos";
+import SinResultadosBusqueda from "./SinResultadosBusqueda";
 import { categorias, productos } from "./productos";
 
 export default function Catalogo({
@@ -330,6 +331,11 @@ export default function Catalogo({
               </div>
 
               {/* GRID */}
+              {/* Se oculta por completo cuando no hay resultados: la
+                  retroalimentación la muestra SinResultadosBusqueda
+                  (o el mensaje genérico) más abajo. */}
+
+              {productosMostrados.length > 0 && (
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
 
@@ -472,24 +478,22 @@ export default function Catalogo({
 
               </div>
 
+              )}
+
               {/* SIN RESULTADOS */}
+              {/* Si la búsqueda no devuelve nada, se oculta la cuadrícula
+                  (arriba) y se muestra este componente de retroalimentación
+                  en su lugar. Si no hay búsqueda activa (ej: categoría sin
+                  productos cargados), se muestra un mensaje genérico. */}
 
               {productosMostrados.length === 0 && (
-
-                <div className="py-20 text-center text-gray-400 text-sm">
-                  {busqueda.trim() ? (
-                    <>
-                      No encontramos repuestos para{" "}
-                      <span className="font-bold text-gray-500">
-                        “{busqueda.trim()}”
-                      </span>
-                      . Probá con otro nombre o código.
-                    </>
-                  ) : (
-                    "No encontramos productos."
-                  )}
-                </div>
-
+                busqueda.trim() ? (
+                  <SinResultadosBusqueda termino={busqueda.trim()} />
+                ) : (
+                  <div className="py-20 text-center text-gray-400 text-sm">
+                    No encontramos productos.
+                  </div>
+                )
               )}
 
             </div>
