@@ -1,13 +1,15 @@
 from typing import Optional
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.part import Part
 from app.models.compatibility import Compatibility
 
 
-def list_parts(db: Session, search: Optional[str] = None) -> list[Part]:
+def list_parts(
+    db: Session, search: Optional[str] = None, category: Optional[str] = None
+) -> list[Part]:
     query = (
         select(Part)
         .options(
@@ -30,5 +32,12 @@ def list_parts(db: Session, search: Optional[str] = None) -> list[Part]:
                 Part.part_code.ilike(pattern),
             )
         )
+
+    # Filtro exacto (insensible a mayúsculas/minúsculas) por categoría.
+    # A diferencia de la búsqueda por nombre/código, no admite coincidencias
+    # parciales porque la categoría es un valor discreto (ej: "frenos").
+    categoria_term = (category or "").strip()
+    if categoria_term:
+        query = query.where(func.lower(Part.category) == categoria_term.lower())
 
     return list(db.scalars(query).all())
