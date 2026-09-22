@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Navbar from "./Navbar";
-import Repuestos from "./assets/Repuestos.jpg";
+import Repuestos from "./assets/repuestos.jpg";
 
 export default function Login({
   onHome,
