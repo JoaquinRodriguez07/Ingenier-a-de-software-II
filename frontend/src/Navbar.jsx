@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import Logo from "frontend/src/assets/logo.png";
+import Logo from "./assets/logo.png";
 
 export default function Navbar({
   paginaActual,
@@ -97,7 +97,7 @@ export default function Navbar({
         className="flex items-center cursor-pointer"
       >
         <img
-          src=Logo
+          src={Logo}
           alt="AutoBought"
           className="h-10 w-auto object-contain"
         />
