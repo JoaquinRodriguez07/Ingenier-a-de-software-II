@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
+import { obtenerSesion, sesionValida } from "./auth";
 
 import Home from "./Home";
 import Login from "./Login";
@@ -29,15 +30,8 @@ function App() {
   ====================================================== */
 
   const [usuario, setUsuario] = useState(() => {
-    try {
-      return (
-        JSON.parse(
-          localStorage.getItem("autobought-sesion")
-        ) || null
-      );
-    } catch {
-      return null;
-    }
+    const sesion = obtenerSesion();
+    return sesionValida(sesion) ? sesion : null;
   });
 
   /* =====================================================
@@ -225,6 +219,11 @@ function App() {
         "autobought-sesion",
         JSON.stringify(usuarioLogueado)
       );
+    } else {
+      sessionStorage.setItem(
+        "autobought-sesion",
+        JSON.stringify(usuarioLogueado)
+      );
     }
 
     navigate("/");
@@ -252,7 +251,11 @@ function App() {
   const actualizarUsuario = (usuarioActualizado) => {
     setUsuario(usuarioActualizado);
 
-    localStorage.setItem(
+    const storage = localStorage.getItem("autobought-sesion")
+      ? localStorage
+      : sessionStorage;
+
+    storage.setItem(
       "autobought-sesion",
       JSON.stringify(usuarioActualizado)
     );
@@ -265,9 +268,8 @@ function App() {
   const cerrarSesion = () => {
     setUsuario(null);
 
-    localStorage.removeItem(
-      "autobought-sesion"
-    );
+    localStorage.removeItem("autobought-sesion");
+    sessionStorage.removeItem("autobought-sesion");
 
     navigate("/");
   };
