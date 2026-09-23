@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "./Navbar";
+import SearchBar from "./SearchBar";
+import { filtrarRepuestos } from "./filtrarRepuestos";
+import SinResultadosBusqueda from "./SinResultadosBusqueda";
 import { categorias, productos } from "./productos";
 
 export default function Catalogo({
@@ -53,32 +56,17 @@ export default function Catalogo({
   // ==========================================
   // PRODUCTOS MOSTRADOS
   // ==========================================
+  // La lógica de búsqueda/filtro/orden vive en filtrarRepuestos.js,
+  // separada de este componente. Acá solo le pasamos el array
+  // `productos` que tengamos en cada momento: hoy es el import de
+  // productos.js, el día de mañana puede ser el resultado de un
+  // fetch/useState contra la API. No hace falta tocar nada de esto
+  // para que ese cambio funcione.
 
-  const productosMostrados = useMemo(() => {
-    let lista = productos.filter(
-      (p) => p.categoria === categoria
-    );
-
-    if (busqueda.trim()) {
-      const q = busqueda.toLowerCase();
-
-      lista = productos.filter((p) =>
-        `${p.nombre} ${p.marca} ${p.codigo} ${p.categoria}`
-          .toLowerCase()
-          .includes(q)
-      );
-    }
-
-    if (orden === "Menor precio") {
-      lista.sort((a, b) => a.precio - b.precio);
-    }
-
-    if (orden === "Mayor precio") {
-      lista.sort((a, b) => b.precio - a.precio);
-    }
-
-    return lista;
-  }, [categoria, busqueda, orden]);
+  const productosMostrados = useMemo(
+    () => filtrarRepuestos(productos, { categoria, busqueda, orden }),
+    [categoria, busqueda, orden]
+  );
 
   // ==========================================
   // CAMBIAR CANTIDAD
@@ -195,26 +183,13 @@ export default function Catalogo({
 
               {/* BUSCADOR */}
 
-              <div className="flex w-full lg:max-w-[475px] bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
-
-                <input
-                  value={busqueda}
-                  onChange={(e) =>
-                    setBusqueda(e.target.value)
-                  }
-                  type="text"
-                  placeholder="Buscar repuesto por nombre, categoría, marca, código..."
-                  className="flex-1 px-4 py-4 text-[10px] outline-none"
-                />
-
-                <button
-                  type="button"
-                  className="bg-orange-500 text-white w-14"
-                >
-                  🔍
-                </button>
-
-              </div>
+              <SearchBar
+                value={busqueda}
+                onChange={setBusqueda}
+                onSubmit={setBusqueda}
+                placeholder="Buscar repuesto por nombre, categoría, marca, código..."
+                className="lg:max-w-[475px]"
+              />
 
             </div>
 
@@ -356,6 +331,11 @@ export default function Catalogo({
               </div>
 
               {/* GRID */}
+              {/* Se oculta por completo cuando no hay resultados: la
+                  retroalimentación la muestra SinResultadosBusqueda
+                  (o el mensaje genérico) más abajo. */}
+
+              {productosMostrados.length > 0 && (
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
 
@@ -498,14 +478,22 @@ export default function Catalogo({
 
               </div>
 
+              )}
+
               {/* SIN RESULTADOS */}
+              {/* Si la búsqueda no devuelve nada, se oculta la cuadrícula
+                  (arriba) y se muestra este componente de retroalimentación
+                  en su lugar. Si no hay búsqueda activa (ej: categoría sin
+                  productos cargados), se muestra un mensaje genérico. */}
 
               {productosMostrados.length === 0 && (
-
-                <div className="py-20 text-center text-gray-400 text-sm">
-                  No encontramos productos.
-                </div>
-
+                busqueda.trim() ? (
+                  <SinResultadosBusqueda termino={busqueda.trim()} />
+                ) : (
+                  <div className="py-20 text-center text-gray-400 text-sm">
+                    No encontramos productos.
+                  </div>
+                )
               )}
 
             </div>
