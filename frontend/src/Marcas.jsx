@@ -198,7 +198,7 @@ export default function Marcas({
               <button
                 key={marca.nombre}
                 type="button"
-                onClick={() => onCatalogo("Frenos")}
+                onClick={() => onCatalogo()}
                 className="group bg-white border border-gray-100 rounded-xl h-[145px] flex flex-col items-center justify-center shadow-sm hover:shadow-lg hover:border-orange-300 hover:-translate-y-1 transition duration-300"
               >
 
@@ -254,7 +254,7 @@ export default function Marcas({
 
             <button
               type="button"
-              onClick={() => onCatalogo("Frenos")}
+              onClick={() => onCatalogo()}
               className="bg-orange-500 hover:bg-orange-600 text-white px-7 py-3 rounded-lg text-[10px] font-black transition whitespace-nowrap"
             >
               VER REPUESTOS →

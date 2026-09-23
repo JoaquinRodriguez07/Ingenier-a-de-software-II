@@ -41,3 +41,20 @@ def list_parts(
         query = query.where(func.lower(Part.category) == categoria_term.lower())
 
     return list(db.scalars(query).all())
+
+
+def list_categories(db: Session) -> list[tuple[str, int]]:
+    # Cantidad real de repuestos por categoría, agrupando por el valor tal
+    # cual está guardado en la columna (case-sensitive), a diferencia de
+    # list_parts que filtra sin distinguir mayúsculas/minúsculas. Si
+    # coexistieran "Brakes" y "brakes", se mostrarían como categorías
+    # separadas con conteos propios, pero filtrar por cualquiera de las dos
+    # devolvería el mismo total combinado (conteo del sidebar ≠ resultados).
+    # Ordenado alfabéticamente por nombre; las categorías sin repuestos no
+    # aparecen (GROUP BY las excluye naturalmente).
+    query = (
+        select(Part.category, func.count(Part.id))
+        .group_by(Part.category)
+        .order_by(Part.category)
+    )
+    return [(category, count) for category, count in db.execute(query).all()]

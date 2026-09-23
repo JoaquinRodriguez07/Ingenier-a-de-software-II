@@ -19,8 +19,11 @@ import ProtectedRoute from "./ProtectedRoute";
 function App() {
   const navigate = useNavigate();
 
+  // null = sin filtro de categoría (el catálogo muestra todos los
+  // repuestos). Los nombres de categoría los define el backend
+  // (GET /api/v1/parts/categories), no el frontend.
   const [categoriaCatalogo, setCategoriaCatalogo] =
-    useState("Frenos");
+    useState(null);
 
   const [productoSeleccionado, setProductoSeleccionado] =
     useState(null);
@@ -181,7 +184,7 @@ function App() {
      (antes: setPagina("x") — ahora: navigate("/x"))
   ====================================================== */
 
-  const irAlCatalogo = (categoria = "Frenos") => {
+  const irAlCatalogo = (categoria = null) => {
     setCategoriaCatalogo(categoria);
     navigate("/catalogo");
   };
@@ -506,6 +509,7 @@ function App() {
             {...propsNavbar}
             onDetalle={irAlDetalle}
             categoriaInicial={categoriaCatalogo}
+            onCategoriaSeleccionada={setCategoriaCatalogo}
             carrito={carrito}
             favoritos={favoritos}
             onAgregarAlCarrito={agregarAlCarrito}

@@ -29,7 +29,7 @@ export default function Carrito({
             <div className="text-5xl mb-4">🛒</div>
             <h2 className="text-xl font-black">Tu carrito está vacío</h2>
             <p className="text-[10px] text-gray-400 mt-2">Agregá repuestos desde el catálogo para verlos acá.</p>
-            <button onClick={() => onCatalogo("Frenos")}
+            <button onClick={() => onCatalogo()}
               className="mt-6 bg-orange-500 hover:bg-orange-600 text-white px-7 py-3 rounded-md text-[10px] font-black">
               VER REPUESTOS
             </button>
@@ -51,7 +51,7 @@ export default function Carrito({
                   </button>
 
                   <div className="flex-1">
-                    <p className="text-orange-500 text-[8px] font-black">{producto.marca}</p>
+                    <p className="text-orange-500 text-[8px] font-black">{producto.marcaPrincipal ?? producto.marca}</p>
                     <button onClick={() => onDetalle(producto)} className="text-left text-[12px] font-black mt-1 hover:text-orange-500">
                       {producto.nombre}
                     </button>
