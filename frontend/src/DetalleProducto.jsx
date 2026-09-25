@@ -10,6 +10,15 @@ export default function DetalleProducto({
   const [imagenActiva, setImagenActiva] = useState(0);
   const [pestana, setPestana] = useState("descripcion");
 
+  // DEUDA CONOCIDA (diferida): si no llega `producto` (refresh o link
+  // compartido a /producto, donde el estado de App ya está vacío) se
+  // renderiza este producto inventado, con opiniones y specs que no
+  // existen en ninguna base, y su AGREGAR mete el id fantasma "BP1234"
+  // en el carrito real. Además, su breadcrumb llama a onCatalogo("Frenos")
+  // y el backend no tiene ninguna categoría "Frenos", así que ese camino
+  // termina en 'No hay productos en la categoría "Frenos"'. El arreglo de
+  // verdad necesita un id en la ruta (/producto/:id) y un
+  // GET /api/v1/parts/{id} que hoy no existe.
   const productoActual = producto || {
     id: "BP1234", marca: "BOSCH", nombre: "Pastillas de Freno Delanteras Bosch",
     codigo: "BP1234", precio: 2450, categoria: "Frenos",
@@ -21,6 +30,19 @@ export default function DetalleProducto({
     garantia: "6 meses por defectos de fabricación.",
     opiniones: [{nombre:"Martín",estrellas:5,texto:"Muy buena calidad y encajaron perfecto."},{nombre:"Lucía",estrellas:5,texto:"Llegaron rápido y el producto es excelente."}],
   };
+
+  // Nota de opiniones: se calcula con las opiniones REALES del producto.
+  // Si no hay ninguna no se muestra nota. Antes había un ★ 4.8/5 fijo que
+  // se renderizaba incluso arriba del estado vacío "todavía no tiene
+  // opiniones", es decir un número inventado presentado como la nota real
+  // del repuesto (todos los que vienen de la API llegan sin `opiniones`).
+  const opiniones = productoActual.opiniones || [];
+  const promedioOpiniones = opiniones.length
+    ? (
+        opiniones.reduce((total, o) => total + (o.estrellas || 0), 0) /
+        opiniones.length
+      ).toFixed(1)
+    : null;
 
   const favorito = esFavorito(productoActual.id);
   const imagenes = [productoActual.imagen, productoActual.imagen, productoActual.imagen];
@@ -74,7 +96,7 @@ export default function DetalleProducto({
             </div>
 
             <div>
-              <p className="text-orange-500 text-[11px] font-black">{productoActual.marca}</p>
+              <p className="text-orange-500 text-[11px] font-black">{productoActual.marcaPrincipal ?? productoActual.marca}</p>
               <h1 className="text-2xl md:text-3xl font-black mt-2 leading-tight">{productoActual.nombre}</h1>
               <p className="text-[10px] text-gray-400 mt-2">Código: {productoActual.codigo}</p>
               <p className="text-3xl font-black text-orange-500 mt-5">${productoActual.precio.toLocaleString("es-UY")}</p>
@@ -90,6 +112,9 @@ export default function DetalleProducto({
                 <div className="flex border border-gray-200 rounded-md">
                   <button onClick={() => setCantidad((v) => Math.max(1, v - 1))} className="w-9">−</button>
                   <span className="w-9 flex items-center justify-center text-[10px]">{cantidad}</span>
+                  {/* DEUDA CONOCIDA (diferida): con stock 0 el "+" queda
+                      clavado mientras la cantidad mostrada arranca en 1,
+                      y AGREGAR sigue habilitado. */}
                   <button onClick={() => setCantidad((v) => Math.min(productoActual.stock, v + 1))} className="w-9">+</button>
                 </div>
                 <button onClick={agregar} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-[10px] font-black transition">
@@ -105,7 +130,7 @@ export default function DetalleProducto({
             <div className="space-y-3">
               <div className="border border-gray-100 rounded-xl shadow-sm p-5">
                 <p className="text-[10px] font-black">🛡 Garantía</p>
-                <p className="text-[9px] text-gray-500 mt-1">{productoActual.garantia}</p>
+                <p className="text-[9px] text-gray-500 mt-1">{productoActual.garantia || "Consultar garantía."}</p>
                 <div className="border-t my-4" />
                 <p className="text-[10px] font-black">🚚 Envíos</p>
                 <p className="text-[9px] text-gray-500 mt-1">A todo el país</p>
@@ -132,15 +157,18 @@ export default function DetalleProducto({
               {pestana === "descripcion" && (
                 <div className="max-w-[800px]">
                   <h2 className="text-[11px] font-black uppercase">Descripción</h2>
-                  <p className="text-[10px] text-gray-600 leading-relaxed mt-4">{productoActual.descripcion}</p>
+                  <p className="text-[10px] text-gray-600 leading-relaxed mt-4">{productoActual.descripcion || "Este repuesto todavía no tiene una descripción cargada."}</p>
                 </div>
               )}
 
               {pestana === "especificaciones" && (
                 <div>
                   <h2 className="text-[11px] font-black uppercase mb-5">Especificaciones técnicas</h2>
+                  {!productoActual.especificaciones?.length && (
+                    <p className="text-[9px] text-gray-400">Este repuesto no tiene especificaciones cargadas.</p>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-14 gap-y-3 max-w-[800px]">
-                    {productoActual.especificaciones.map(([clave, valor]) => (
+                    {(productoActual.especificaciones || []).map(([clave, valor]) => (
                       <div key={clave} className="flex justify-between border-b border-gray-100 pb-2">
                         <span className="text-[9px] text-gray-500">{clave}</span>
                         <span className="text-[9px] font-bold">{valor}</span>
@@ -154,8 +182,11 @@ export default function DetalleProducto({
                 <div>
                   <h2 className="text-[11px] font-black uppercase">Aplicaciones y compatibilidad</h2>
                   <p className="text-[9px] text-gray-500 mt-2">Vehículos para los que está indicado este repuesto:</p>
+                  {!productoActual.aplicaciones?.length && (
+                    <p className="text-[9px] text-gray-400 mt-4">Este repuesto no tiene aplicaciones cargadas.</p>
+                  )}
                   <div className="mt-5 space-y-2 max-w-[700px]">
-                    {productoActual.aplicaciones.map((aplicacion) => (
+                    {(productoActual.aplicaciones || []).map((aplicacion) => (
                       <div key={aplicacion} className="bg-gray-50 rounded-md px-4 py-3 text-[10px]">
                         <span className="text-green-600 mr-2">✓</span>{aplicacion}
                       </div>
@@ -169,7 +200,7 @@ export default function DetalleProducto({
                   <h2 className="text-[11px] font-black uppercase">Garantía</h2>
                   <div className="bg-orange-50 border border-orange-100 rounded-xl p-5 mt-4">
                     <p className="text-[11px] font-black">🛡 Garantía del producto</p>
-                    <p className="text-[10px] text-gray-600 mt-2">{productoActual.garantia}</p>
+                    <p className="text-[10px] text-gray-600 mt-2">{productoActual.garantia || "Consultar garantía."}</p>
                   </div>
                 </div>
               )}
@@ -178,8 +209,13 @@ export default function DetalleProducto({
                 <div className="max-w-[800px]">
                   <div className="flex items-center justify-between mb-5">
                     <h2 className="text-[11px] font-black uppercase">Opiniones de clientes</h2>
-                    <span className="text-orange-500 font-black text-lg">★ 4.8/5</span>
+                    {promedioOpiniones && (
+                      <span className="text-orange-500 font-black text-lg">★ {promedioOpiniones}/5</span>
+                    )}
                   </div>
+                  {!productoActual.opiniones?.length && (
+                    <p className="text-[9px] text-gray-400">Este repuesto todavía no tiene opiniones.</p>
+                  )}
                   <div className="space-y-3">
                     {(productoActual.opiniones || []).map((opinion, index) => (
                       <div key={index} className="border border-gray-100 rounded-xl p-4">

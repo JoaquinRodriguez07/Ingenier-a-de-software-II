@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
+
 import Navbar from "./Navbar";
+import { obtenerCategorias } from "./api";
 
 import AudiLogo from "./assets/Logos Vehiculos/Audi.svg";
 import BMWLogo from "./assets/Logos Vehiculos/BMW.png";
@@ -47,15 +50,34 @@ export default function Home({
      CATEGORÍAS
   ========================================================== */
 
-  const categorias = [
-    "Motores",
-    "Frenos",
-    "Suspensión",
-    "Transmisión",
-    "Electricidad",
-    "Filtros",
-    "Accesorios",
-  ];
+  // Las categorías vienen del backend (mismo helper que usa el
+  // catálogo: obtenerCategorias -> GET /api/v1/parts/categories), así
+  // los nombres que Home le pasa a onCatalogo son exactamente los que
+  // el servidor sabe filtrar. `null` = todavía cargando.
+  //
+  // Home es una landing: si el pedido falla, la grilla queda vacía y
+  // el resto de la página sigue funcionando; no se muestra un cartel
+  // de error.
+
+  const [categorias, setCategorias] = useState(null);
+
+  useEffect(() => {
+    let activo = true;
+
+    obtenerCategorias()
+      .then((lista) => {
+        if (!activo) return;
+        setCategorias(lista);
+      })
+      .catch(() => {
+        if (!activo) return;
+        setCategorias([]);
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   /* =========================================================
      MARCAS
@@ -98,6 +120,9 @@ export default function Home({
 
   /* =========================================================
      PRODUCTOS MÁS VENDIDOS
+     Mock local: no son filas reales del backend, así que no
+     tienen categoría (ninguna coincidiría con las del catálogo).
+     Por eso "VER REPUESTOS" abre el catálogo completo.
   ========================================================== */
 
   const productos = [
@@ -106,7 +131,6 @@ export default function Home({
       nombre: "Pastillas de Freno Delanteras",
       codigo: "BP1234",
       precio: "$2.450",
-      categoria: "Frenos",
       imagen:
         "https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?q=80&w=600&auto=format&fit=crop",
     },
@@ -115,7 +139,6 @@ export default function Home({
       nombre: "Discos de Freno Delanteros",
       codigo: "BRD1234",
       precio: "$4.200",
-      categoria: "Frenos",
       imagen:
         "https://images.unsplash.com/photo-1504215680853-026ed2a45def?q=80&w=600&auto=format&fit=crop",
     },
@@ -124,7 +147,6 @@ export default function Home({
       nombre: "Filtro de Aire",
       codigo: "MF4587",
       precio: "$1.290",
-      categoria: "Filtros",
       imagen:
         "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=600&auto=format&fit=crop",
     },
@@ -133,7 +155,6 @@ export default function Home({
       nombre: "Amortiguador Delantero",
       codigo: "MN7821",
       precio: "$5.890",
-      categoria: "Suspensión",
       imagen:
         "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=600&auto=format&fit=crop",
     },
@@ -212,7 +233,7 @@ export default function Home({
 
             <button
               type="button"
-              onClick={() => onCatalogo("Frenos")}
+              onClick={() => onCatalogo()}
               className="mt-8 bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-lg text-[11px] font-black transition"
             >
               BUSCAR REPUESTOS →
@@ -293,7 +314,7 @@ export default function Home({
 
             <button
               type="button"
-              onClick={() => onCatalogo("Frenos")}
+              onClick={() => onCatalogo()}
               className="bg-orange-500 hover:bg-orange-600 text-white rounded-md px-7 py-3 text-[10px] font-black transition"
             >
               BUSCAR REPUESTOS
@@ -327,7 +348,7 @@ export default function Home({
 
           <button
             type="button"
-            onClick={() => onCatalogo("Frenos")}
+            onClick={() => onCatalogo()}
             className="text-orange-500 text-[10px] font-bold hover:underline"
           >
             Ver todas →
@@ -335,18 +356,24 @@ export default function Home({
 
         </div>
 
+        {categorias === null && (
+          <p className="text-[10px] text-gray-400">
+            Cargando categorías…
+          </p>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
 
-          {categorias.map((categoria) => (
+          {(categorias || []).map((categoria) => (
 
             <button
-              key={categoria}
+              key={categoria.nombre}
               type="button"
-              onClick={() => onCatalogo(categoria)}
+              onClick={() => onCatalogo(categoria.nombre)}
               className="h-24 bg-white border border-gray-200 rounded-xl hover:border-orange-400 hover:shadow-md hover:-translate-y-1 transition duration-300 flex items-center justify-center"
             >
               <p className="text-[10px] font-bold">
-                {categoria}
+                {categoria.nombre}
               </p>
             </button>
 
@@ -457,7 +484,7 @@ export default function Home({
 
             <button
               type="button"
-              onClick={() => onCatalogo("Frenos")}
+              onClick={() => onCatalogo()}
               className="text-orange-500 text-[10px] font-bold hover:underline"
             >
               Ver más →
@@ -504,9 +531,7 @@ export default function Home({
 
                   <button
                     type="button"
-                    onClick={() =>
-                      onCatalogo(producto.categoria)
-                    }
+                    onClick={() => onCatalogo()}
                     className="w-full mt-3 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white rounded-md py-2 text-[9px] font-bold transition"
                   >
                     VER REPUESTOS

@@ -134,7 +134,7 @@ export default function Navbar({
 
         <button
           type="button"
-          onClick={() => onCatalogo("Frenos")}
+          onClick={() => onCatalogo()}
           className={`text-[11px] font-semibold transition ${
             paginaActual === "catalogo" ||
             paginaActual === "detalle"

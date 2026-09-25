@@ -19,8 +19,11 @@ import ProtectedRoute from "./ProtectedRoute";
 function App() {
   const navigate = useNavigate();
 
+  // null = sin filtro de categoría (el catálogo muestra todos los
+  // repuestos). Los nombres de categoría los define el backend
+  // (GET /api/v1/parts/categories), no el frontend.
   const [categoriaCatalogo, setCategoriaCatalogo] =
-    useState("Frenos");
+    useState(null);
 
   const [productoSeleccionado, setProductoSeleccionado] =
     useState(null);
@@ -181,7 +184,7 @@ function App() {
      (antes: setPagina("x") — ahora: navigate("/x"))
   ====================================================== */
 
-  const irAlCatalogo = (categoria = "Frenos") => {
+  const irAlCatalogo = (categoria = null) => {
     setCategoriaCatalogo(categoria);
     navigate("/catalogo");
   };
@@ -492,42 +495,51 @@ function App() {
       />
 
       {/* =================================================
+          CATÁLOGO Y DETALLE DE PRODUCTO
+          Navegar el catálogo es público: no requiere sesión.
+          Agregar al carrito o marcar favoritos sí la requiere
+          (ver los guards en agregarAlCarrito/alternarFavorito,
+          que redirigen a /login).
+      ================================================== */}
+
+      <Route
+        path="/catalogo"
+        element={
+          <Catalogo
+            {...propsNavbar}
+            onDetalle={irAlDetalle}
+            categoriaInicial={categoriaCatalogo}
+            onCategoriaSeleccionada={setCategoriaCatalogo}
+            carrito={carrito}
+            favoritos={favoritos}
+            onAgregarAlCarrito={agregarAlCarrito}
+            onAlternarFavorito={alternarFavorito}
+            esFavorito={esFavorito}
+          />
+        }
+      />
+
+      <Route
+        path="/producto"
+        element={
+          <DetalleProducto
+            {...propsNavbar}
+            onDetalle={irAlDetalle}
+            onCatalogo={irAlCatalogo}
+            producto={productoSeleccionado}
+            onAgregarAlCarrito={agregarAlCarrito}
+            onAlternarFavorito={alternarFavorito}
+            esFavorito={esFavorito}
+          />
+        }
+      />
+
+      {/* =================================================
           RUTAS PROTEGIDAS
-          (requieren sesión activa — subtask 2)
+          (requieren sesión activa)
       ================================================== */}
 
       <Route element={<ProtectedRoute />}>
-        <Route
-          path="/catalogo"
-          element={
-            <Catalogo
-              {...propsNavbar}
-              onDetalle={irAlDetalle}
-              categoriaInicial={categoriaCatalogo}
-              carrito={carrito}
-              favoritos={favoritos}
-              onAgregarAlCarrito={agregarAlCarrito}
-              onAlternarFavorito={alternarFavorito}
-              esFavorito={esFavorito}
-            />
-          }
-        />
-
-        <Route
-          path="/producto"
-          element={
-            <DetalleProducto
-              {...propsNavbar}
-              onDetalle={irAlDetalle}
-              onCatalogo={irAlCatalogo}
-              producto={productoSeleccionado}
-              onAgregarAlCarrito={agregarAlCarrito}
-              onAlternarFavorito={alternarFavorito}
-              esFavorito={esFavorito}
-            />
-          }
-        />
-
         <Route
           path="/carrito"
           element={
