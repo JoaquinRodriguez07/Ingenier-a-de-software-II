@@ -9,8 +9,11 @@ from app.models.cart import Cart
 from app.models.cart_item import CartItem
 from app.models.client import Client
 from app.models.compatibility import Compatibility
+from app.models.employee import Employee
+from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.part import Part
+from app.models.user import User
 from app.schemas.part import build_part_out
 
 
@@ -142,4 +145,98 @@ def test_place_order_rejects_insufficient_stock(db_session):
 	db_session.rollback()
 	assert db_session.query(OrderItem).count() == 0
 	assert db_session.query(Part).one().stock == 1
+
+
+def test_cart_persists_client_items_and_part_relationships(db_session):
+	client = Client(
+		username="carla",
+		password="secret",
+		name="Carla",
+		email="carla@example.com",
+	)
+	part = Part(
+		part_code="OIL-001",
+		name="Engine oil",
+		category="Fluids",
+		price=1800,
+		stock=8,
+	)
+	client.cart = Cart(items=[CartItem(part=part, amount=3)])
+	db_session.add(client)
+	db_session.commit()
+	db_session.refresh(client)
+
+	assert client.cart.client_id == client.user_id
+	assert client.cart.items[0].part.part_code == "OIL-001"
+	assert client.cart.items[0].amount == 3
+
+
+def test_order_persists_items_and_links_client_and_parts(db_session):
+	client = Client(
+		username="olga",
+		password="secret",
+		name="Olga",
+		email="olga@example.com",
+	)
+	part = Part(
+		part_code="SPK-001",
+		name="Spark plug",
+		category="Ignition",
+		price=2200,
+		stock=6,
+	)
+	order = Order(client=client)
+	order.items.append(OrderItem(part=part, quantity=2, frozen_price=2200))
+	db_session.add(order)
+	db_session.commit()
+	db_session.refresh(order)
+
+	assert order.client.username == "olga"
+	assert order.items[0].part.part_code == "SPK-001"
+	assert order.items[0].quantity == 2
+	assert order.items[0].frozen_price == 2200
+
+
+def test_part_persists_optional_color_and_default_stock(db_session):
+	part = Part(
+		part_code="WIP-001",
+		name="Wiper blade",
+		category="Visibility",
+		color="Black",
+		price=950,
+	)
+	db_session.add(part)
+	db_session.commit()
+	db_session.refresh(part)
+
+	assert part.color == "Black"
+	assert part.stock == 0
+
+
+def test_user_polymorphism_loads_user_subclasses(db_session):
+	user = User(
+		username="regular",
+		password="secret",
+		name="Regular User",
+		email="regular@example.com",
+	)
+	employee = Employee(
+		username="worker",
+		password="secret",
+		name="Workshop Worker",
+		email="worker@example.com",
+	)
+	db_session.add_all([user, employee])
+	db_session.commit()
+
+	loaded_users = (
+		db_session.query(User)
+		.order_by(User.username)
+		.all()
+	)
+
+	assert isinstance(loaded_users[0], User)
+	assert type(loaded_users[0]) is User
+	assert isinstance(loaded_users[1], Employee)
+	assert loaded_users[1].user_type == "employee"
 
