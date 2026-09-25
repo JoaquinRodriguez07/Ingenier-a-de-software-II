@@ -17,6 +17,7 @@ const DATABASE_PATH = path.join(
 
 let server;
 let baseUrl;
+let serverErrors = "";
 
 function sqliteUrl(databasePath) {
   return `sqlite:///${databasePath.replaceAll("\\", "/")}`;
@@ -44,7 +45,9 @@ async function waitForApi(url) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
-  throw new Error("The FastAPI server did not become ready in time.");
+    throw new Error(
+      `The FastAPI server did not become ready in time.\n${serverErrors}`
+    );
 }
 
 beforeAll(async () => {
@@ -69,8 +72,11 @@ beforeAll(async () => {
   server = spawn(
     PYTHON,
     ["-m", "uvicorn", "main:app", "--host", HOST, "--port", String(port)],
-    { cwd: BACKEND_DIR, env: environment, stdio: "ignore" }
+    { cwd: BACKEND_DIR, env: environment, stdio: ["ignore", "ignore", "pipe"] }
   );
+  server.stderr.on("data", (data) => {
+    serverErrors += data.toString();
+  });
 
   pactum.request.setBaseUrl(baseUrl);
   await waitForApi(baseUrl);

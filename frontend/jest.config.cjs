@@ -1,6 +1,7 @@
 module.exports = {
   testEnvironment: "jsdom",
   setupFilesAfterEnv: ["<rootDir>/src/setupTests.js"],
+  testPathIgnorePatterns: ["<rootDir>/integration/"],
   transform: {
     "^.+\\.[jt]sx?$": "babel-jest",
   },
