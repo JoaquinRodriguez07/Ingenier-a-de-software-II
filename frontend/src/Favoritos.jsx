@@ -23,7 +23,7 @@ export default function Favoritos({
             <div className="text-5xl mb-4 text-orange-500">♡</div>
             <h2 className="text-xl font-black">Todavía no tenés favoritos</h2>
             <p className="text-[10px] text-gray-400 mt-2">Tocá el corazón de un producto para guardarlo.</p>
-            <button onClick={() => onCatalogo("Frenos")}
+            <button onClick={() => onCatalogo()}
               className="mt-6 bg-orange-500 hover:bg-orange-600 text-white px-7 py-3 rounded-md text-[10px] font-black">
               EXPLORAR REPUESTOS
             </button>
@@ -40,7 +40,7 @@ export default function Favoritos({
                   </button>
                 </div>
                 <div className="p-4">
-                  <p className="text-[9px] text-orange-500 font-black">{producto.marca}</p>
+                  <p className="text-[9px] text-orange-500 font-black">{producto.marcaPrincipal ?? producto.marca}</p>
                   <button onClick={() => onDetalle(producto)} className="text-left text-[11px] font-black mt-1 hover:text-orange-500">
                     {producto.nombre}
                   </button>
