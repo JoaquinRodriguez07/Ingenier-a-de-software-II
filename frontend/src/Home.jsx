@@ -1,4 +1,8 @@
+import { useEffect, useState } from "react";
+
 import Navbar from "./Navbar";
+import BrandDropdown from "./BrandDropdown";
+import ModelDropdown from "./ModelDropdown";
 
 import AudiLogo from "./assets/Logos Vehiculos/Audi.svg";
 import BMWLogo from "./assets/Logos Vehiculos/BMW.png";
@@ -16,9 +20,6 @@ import SuzukiLogo from "./assets/Logos Vehiculos/Suzuki.png";
 import VolkswagenLogo from "./assets/Logos Vehiculos/Volkswagen.webp";
 
 export default function Home({
-  // ==========================================
-  // NAVBAR
-  // ==========================================
   usuario,
   onHome,
   onLogin,
@@ -26,26 +27,107 @@ export default function Home({
   onMarcas,
   onCarrito,
   onFavoritos,
+  filtrosVehiculo,
 
-  // ==========================================
-  // MENÚ DE USUARIO
-  // ==========================================
   onPerfil,
   onDirecciones,
   onMetodosPago,
   onHistorial,
   onCerrarSesion,
 
-  // ==========================================
-  // CONTADORES
-  // ==========================================
   cantidadCarrito,
   cantidadFavoritos,
 }) {
+  // ==========================================
+  // VEHICLE SELECTION
+  // ==========================================
 
-  /* =========================================================
-     CATEGORÍAS
-  ========================================================== */
+  const [selectedBrand, setSelectedBrand] = useState(
+    filtrosVehiculo?.brand || ""
+  );
+
+  const [selectedModel, setSelectedModel] = useState(
+    filtrosVehiculo?.model || ""
+  );
+
+  const [selectedYear, setSelectedYear] = useState(
+    filtrosVehiculo?.year || ""
+  );
+
+  const [years, setYears] = useState([]);
+  const [loadingYears, setLoadingYears] = useState(false);
+
+  // ==========================================
+  // SINCRONIZAR VEHÍCULO AL VOLVER DESDE CATÁLOGO
+  // ==========================================
+
+  useEffect(() => {
+    setSelectedBrand(filtrosVehiculo?.brand || "");
+    setSelectedModel(filtrosVehiculo?.model || "");
+    setSelectedYear(filtrosVehiculo?.year || "");
+  }, [filtrosVehiculo]);
+
+  // ==========================================
+  // CAMBIO DE MARCA
+  // ==========================================
+
+  const handleBrandChange = (brand) => {
+    setSelectedBrand(brand);
+    setSelectedModel("");
+    setSelectedYear("");
+    setYears([]);
+  };
+
+  // ==========================================
+  // CAMBIO DE MODELO
+  // ==========================================
+
+  const handleModelChange = (model) => {
+    setSelectedModel(model);
+    setSelectedYear("");
+  };
+
+  // ==========================================
+  // CARGAR AÑOS SEGÚN MARCA + MODELO
+  // ==========================================
+
+  useEffect(() => {
+    if (!selectedBrand || !selectedModel) {
+      setYears([]);
+      return;
+    }
+
+    const cargarAnios = async () => {
+      try {
+        setLoadingYears(true);
+
+        const response = await fetch(
+          `/api/v1/years?brand=${encodeURIComponent(
+            selectedBrand
+          )}&model=${encodeURIComponent(selectedModel)}`
+        );
+
+        if (!response.ok) {
+          throw new Error("No se pudieron obtener los años");
+        }
+
+        const data = await response.json();
+
+        setYears(data.years || []);
+      } catch (error) {
+        console.error("Error cargando años:", error);
+        setYears([]);
+      } finally {
+        setLoadingYears(false);
+      }
+    };
+
+    cargarAnios();
+  }, [selectedBrand, selectedModel]);
+
+  // ==========================================
+  // CATEGORÍAS
+  // ==========================================
 
   const categorias = [
     "Motores",
@@ -57,14 +139,14 @@ export default function Home({
     "Accesorios",
   ];
 
-  /* =========================================================
-     MARCAS
-  ========================================================== */
+  // ==========================================
+  // MARCAS
+  // ==========================================
 
   const marcas = [
     {
       nombre: "Volkswagen",
-      logo: "https://cdn.simpleicons.org/volkswagen/000000",
+      logo: VolkswagenLogo,
     },
     {
       nombre: "Chevrolet",
@@ -96,9 +178,9 @@ export default function Home({
     },
   ];
 
-  /* =========================================================
-     PRODUCTOS MÁS VENDIDOS
-  ========================================================== */
+  // ==========================================
+  // PRODUCTOS MÁS VENDIDOS
+  // ==========================================
 
   const productos = [
     {
@@ -148,26 +230,18 @@ export default function Home({
 
       <Navbar
         paginaActual="home"
-
         usuario={usuario}
-
         onHome={onHome}
         onCatalogo={onCatalogo}
         onLogin={onLogin}
         onMarcas={onMarcas}
         onCarrito={onCarrito}
         onFavoritos={onFavoritos}
-
-        // ==========================================
-        // MENÚ DE USUARIO
-        // ==========================================
-
         onPerfil={onPerfil}
         onDirecciones={onDirecciones}
         onMetodosPago={onMetodosPago}
         onHistorial={onHistorial}
         onCerrarSesion={onCerrarSesion}
-
         cantidadCarrito={cantidadCarrito}
         cantidadFavoritos={cantidadFavoritos}
       />
@@ -212,7 +286,13 @@ export default function Home({
 
             <button
               type="button"
-              onClick={() => onCatalogo("Frenos")}
+              onClick={() =>
+                onCatalogo("Frenos", {
+                  brand: selectedBrand,
+                  model: selectedModel,
+                  year: selectedYear,
+                })
+              }
               className="mt-8 bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-lg text-[11px] font-black transition"
             >
               BUSCAR REPUESTOS →
@@ -227,7 +307,6 @@ export default function Home({
           </div>
 
         </div>
-
       </section>
 
       {/* =====================================================
@@ -240,22 +319,23 @@ export default function Home({
 
           <div className="flex flex-col md:flex-row md:items-end gap-4">
 
+            {/* MARCA */}
+
             <div className="flex-1">
 
               <p className="text-[9px] text-gray-400 font-bold mb-2">
                 MARCA
               </p>
 
-              <select className="w-full bg-white rounded-md px-3 py-3 text-[10px] outline-none">
-
-                <option>Volkswagen</option>
-                <option>Chevrolet</option>
-                <option>Fiat</option>
-                <option>Renault</option>
-
-              </select>
+              <BrandDropdown
+                value={selectedBrand}
+                onChange={handleBrandChange}
+                className="w-full bg-white rounded-md px-3 py-3 text-[10px] outline-none"
+              />
 
             </div>
+
+            {/* MODELO */}
 
             <div className="flex-1">
 
@@ -263,16 +343,16 @@ export default function Home({
                 MODELO
               </p>
 
-              <select className="w-full bg-white rounded-md px-3 py-3 text-[10px] outline-none">
-
-                <option>Gol</option>
-                <option>Polo</option>
-                <option>Nivus</option>
-                <option>Virtus</option>
-
-              </select>
+              <ModelDropdown
+                brand={selectedBrand}
+                value={selectedModel}
+                onChange={handleModelChange}
+                className="w-full bg-white rounded-md px-3 py-3 text-[10px] outline-none"
+              />
 
             </div>
+
+            {/* AÑO */}
 
             <div className="flex-1">
 
@@ -280,20 +360,38 @@ export default function Home({
                 AÑO
               </p>
 
-              <select className="w-full bg-white rounded-md px-3 py-3 text-[10px] outline-none">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                disabled={!selectedModel || loadingYears}
+                className="w-full bg-white rounded-md px-3 py-3 text-[10px] outline-none disabled:bg-gray-200 disabled:text-gray-400"
+              >
+                <option value="">
+                  {!selectedModel
+                    ? "Seleccioná un modelo"
+                    : loadingYears
+                    ? "Cargando años..."
+                    : "Seleccioná un año"}
+                </option>
 
-                <option>2019</option>
-                <option>2020</option>
-                <option>2021</option>
-                <option>2022</option>
-
+                {years.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
               </select>
 
             </div>
 
             <button
               type="button"
-              onClick={() => onCatalogo("Frenos")}
+              onClick={() =>
+                onCatalogo("Frenos", {
+                  brand: selectedBrand,
+                  model: selectedModel,
+                  year: selectedYear,
+                })
+              }
               className="bg-orange-500 hover:bg-orange-600 text-white rounded-md px-7 py-3 text-[10px] font-black transition"
             >
               BUSCAR REPUESTOS
@@ -302,7 +400,6 @@ export default function Home({
           </div>
 
         </div>
-
       </section>
 
       {/* =====================================================
@@ -504,9 +601,7 @@ export default function Home({
 
                   <button
                     type="button"
-                    onClick={() =>
-                      onCatalogo(producto.categoria)
-                    }
+                    onClick={() => onCatalogo(producto.categoria)}
                     className="w-full mt-3 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white rounded-md py-2 text-[9px] font-bold transition"
                   >
                     VER REPUESTOS

@@ -19,7 +19,13 @@ function App() {
   const navigate = useNavigate();
 
   const [categoriaCatalogo, setCategoriaCatalogo] =
-    useState("Frenos");
+  useState("Frenos");
+
+  const [filtrosVehiculo, setFiltrosVehiculo] = useState({
+    brand: "",
+    model: "",
+    year: "",
+  });
 
   const [productoSeleccionado, setProductoSeleccionado] =
     useState(null);
@@ -187,8 +193,22 @@ function App() {
      (antes: setPagina("x") — ahora: navigate("/x"))
   ====================================================== */
 
-  const irAlCatalogo = (categoria = "Frenos") => {
+  const irAlCatalogo = (
+    categoria = "Frenos",
+    vehiculo = null
+  ) => {
     setCategoriaCatalogo(categoria);
+
+    if (vehiculo) {
+      setFiltrosVehiculo(vehiculo);
+    } else {
+      setFiltrosVehiculo({
+        brand: "",
+        model: "",
+        year: "",
+      });
+    }
+
     navigate("/catalogo");
   };
 
@@ -448,7 +468,12 @@ function App() {
 
       <Route
         path="/"
-        element={<Home {...propsNavbar} />}
+        element={
+          <Home
+            {...propsNavbar}
+            filtrosVehiculo={filtrosVehiculo}
+          />
+        }
       />
 
       {/* =================================================
@@ -502,6 +527,7 @@ function App() {
               {...propsNavbar}
               onDetalle={irAlDetalle}
               categoriaInicial={categoriaCatalogo}
+              filtrosVehiculo={filtrosVehiculo}
               carrito={carrito}
               favoritos={favoritos}
               onAgregarAlCarrito={agregarAlCarrito}
@@ -519,6 +545,7 @@ function App() {
               onDetalle={irAlDetalle}
               onCatalogo={irAlCatalogo}
               producto={productoSeleccionado}
+              filtrosVehiculo={filtrosVehiculo}
               onAgregarAlCarrito={agregarAlCarrito}
               onAlternarFavorito={alternarFavorito}
               esFavorito={esFavorito}
