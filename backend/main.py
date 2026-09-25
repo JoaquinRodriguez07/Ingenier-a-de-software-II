@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -5,9 +7,17 @@ from app.api.v1.router import api_router
 
 app = FastAPI(title= "API Repuestos")
 
+# Orígenes fijos para desarrollo local, más cualquier subdominio de
+# GitHub Codespaces (*.app.github.dev, cambia en cada Codespace) y,
+# opcionalmente, uno extra por variable de entorno (CORS_EXTRA_ORIGIN).
+origenes_permitidos = ["http://localhost:5173", "http://127.0.0.1:5173"]
+if origen_extra := os.getenv("CORS_EXTRA_ORIGIN"):
+    origenes_permitidos.append(origen_extra)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=origenes_permitidos,
+    allow_origin_regex=r"https://.*\.app\.github\.dev",
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -28,13 +28,29 @@
  * caen al campo del backend.
  */
 
-const getNombre = (p) => p.nombre ?? p.name ?? "";
-const getCodigo = (p) => p.codigo ?? p.part_code ?? "";
-const getCategoria = (p) => p.categoria ?? p.category ?? "";
-const getPrecio = (p) => p.precio ?? p.price ?? 0;
-const getMarca = (p) =>
+// Placeholder para cuando el producto no trae imagen (hoy: cualquier
+// repuesto que venga de la API real, que todavía no expone ese campo).
+const IMAGEN_PLACEHOLDER =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'>" +
+      "<rect width='100%' height='100%' fill='#f3f4f6'/>" +
+      "<text x='50%' y='50%' font-family='sans-serif' font-size='16' " +
+      "fill='#9ca3af' text-anchor='middle' dominant-baseline='middle'>" +
+      "Sin imagen</text></svg>"
+  );
+
+// Exportados para que Catalogo.jsx (y cualquier otro componente que
+// renderice un repuesto) pueda leer estos campos sin importarle si el
+// objeto vino del mock local o de la API real.
+export const getNombre = (p) => p.nombre ?? p.name ?? "";
+export const getCodigo = (p) => p.codigo ?? p.part_code ?? "";
+export const getCategoria = (p) => p.categoria ?? p.category ?? "";
+export const getPrecio = (p) => p.precio ?? p.price ?? 0;
+export const getMarca = (p) =>
   p.marca ??
-  (Array.isArray(p.compatible_brands) ? p.compatible_brands.join(" ") : "");
+  (Array.isArray(p.compatible_brands) ? p.compatible_brands.join(", ") : "");
+export const getImagen = (p) => p.imagen ?? IMAGEN_PLACEHOLDER;
 
 /**
  * @param {Array<object>} productos - array de repuestos (mock o API).

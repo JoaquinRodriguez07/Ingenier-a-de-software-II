@@ -1,9 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Navbar from "./Navbar";
 import SearchBar from "./SearchBar";
-import { filtrarRepuestos } from "./filtrarRepuestos";
+import {
+  filtrarRepuestos,
+  getCodigo,
+  getImagen,
+  getMarca,
+  getNombre,
+  getPrecio,
+} from "./filtrarRepuestos";
 import SinResultadosBusqueda from "./SinResultadosBusqueda";
-import { categorias, productos } from "./productos";
+import { categorias } from "./productos";
+import { buscarRepuestos } from "./api";
+import { useVehicle } from "./VehicleContext";
+import SelectorVehiculo from "./SelectorVehiculo";
+import ActiveVehicleBanner from "./ActiveVehicleBanner";
 
 export default function Catalogo({
   // ==========================================
@@ -38,34 +49,94 @@ export default function Catalogo({
   esFavorito,
 }) {
   const [categoria, setCategoria] = useState(
-    categoriaInicial || "Frenos"
-  );
+  categoriaInicial || ""
+);
 
   const [orden, setOrden] = useState("Más relevantes");
   const [busqueda, setBusqueda] = useState("");
   const [cantidades, setCantidades] = useState({});
 
+  const { vehiculoActivo, confirmarVehiculo, limpiarVehiculo } =
+    useVehicle();
+
   // ==========================================
-  // ACTUALIZAR CATEGORÍA
+  // REPUESTOS (datos reales de la API)
   // ==========================================
+
+  const [repuestosApi, setRepuestosApi] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
+
+  
+  const ejecutarBusqueda = useCallback(
+    async (overrides = {}) => {
+      setCargando(true);
+      setError(null);
+
+      const filtros = {
+        search: busqueda,
+        category: categoria,
+        brand: vehiculoActivo?.marca,
+        model: vehiculoActivo?.modelo,
+        year: vehiculoActivo?.anio,
+        ...overrides,
+      };
+
+      try {
+        const resultado = await buscarRepuestos(filtros);
+        setRepuestosApi(resultado);
+      } catch {
+        setError(
+          "No pudimos cargar los repuestos. Probá de nuevo en un momento."
+        );
+      } finally {
+        setCargando(false);
+      }
+    },
+    [busqueda, categoria, vehiculoActivo]
+  );
+
+  
+  useEffect(() => {
+    ejecutarBusqueda();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoria]);
 
   useEffect(() => {
-    setCategoria(categoriaInicial || "Frenos");
-  }, [categoriaInicial]);
+  setCategoria(categoriaInicial || "");
+}, [categoriaInicial]);
 
-  // ==========================================
-  // PRODUCTOS MOSTRADOS
-  // ==========================================
-  // La lógica de búsqueda/filtro/orden vive en filtrarRepuestos.js,
-  // separada de este componente. Acá solo le pasamos el array
-  // `productos` que tengamos en cada momento: hoy es el import de
-  // productos.js, el día de mañana puede ser el resultado de un
-  // fetch/useState contra la API. No hace falta tocar nada de esto
-  // para que ese cambio funcione.
+ 
+  const manejarBusqueda = (texto) => {
+    setBusqueda(texto);
+    ejecutarBusqueda({ search: texto });
+  };
+
+ 
+  const manejarBuscarVehiculo = ({ marca, modelo, anio }) => {
+    confirmarVehiculo(marca, modelo, anio);
+    ejecutarBusqueda({ brand: marca, model: modelo, year: anio });
+  };
+
+ const handleResetFiltros = () => {
+  limpiarVehiculo();
+  setBusqueda("");
+  setCategoria("");
+
+  ejecutarBusqueda({
+    search: undefined,
+    category: undefined,
+    brand: undefined,
+    model: undefined,
+    year: undefined,
+  });
+};
+
+
 
   const productosMostrados = useMemo(
-    () => filtrarRepuestos(productos, { categoria, busqueda, orden }),
-    [categoria, busqueda, orden]
+    () => filtrarRepuestos(repuestosApi, { orden }),
+    [repuestosApi, orden]
   );
 
   // ==========================================
@@ -153,40 +224,24 @@ export default function Catalogo({
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mt-5">
 
               {/* VEHÍCULO */}
+              {/* Banner si ya hay un vehículo confirmado (HU 2.3),
+                  selector en cascada si todavía no eligió ninguno. */}
 
-              <div className="bg-[#151719] text-white rounded-lg px-5 py-4 min-w-[430px]">
-
-                <p className="text-[9px] text-gray-400">
-                  Vehículo seleccionado:
-                </p>
-
-                <div className="flex items-center gap-3 mt-1">
-
-                  <span className="text-xl">
-                    🚗
-                  </span>
-
-                  <p className="text-[14px] font-black">
-                    Volkswagen Gol 2019 Highline
-                  </p>
-
-                  <button
-                    type="button"
-                    className="text-orange-500 text-[9px] font-bold underline"
-                  >
-                    Cambiar
-                  </button>
-
-                </div>
-
-              </div>
+              {vehiculoActivo ? (
+                <ActiveVehicleBanner onCambiar={handleResetFiltros} />
+              ) : (
+                <SelectorVehiculo
+                  onBuscar={manejarBuscarVehiculo}
+                  onLimpiar={handleResetFiltros}
+                />
+              )}
 
               {/* BUSCADOR */}
 
               <SearchBar
                 value={busqueda}
                 onChange={setBusqueda}
-                onSubmit={setBusqueda}
+                onSubmit={manejarBusqueda}
                 placeholder="Buscar repuesto por nombre, categoría, marca, código..."
                 className="lg:max-w-[475px]"
               />
@@ -330,12 +385,26 @@ export default function Catalogo({
 
               </div>
 
+              {/* CARGANDO / ERROR */}
+
+              {cargando && (
+                <div className="py-20 text-center text-gray-400 text-sm">
+                  Cargando repuestos...
+                </div>
+              )}
+
+              {!cargando && error && (
+                <div className="py-20 text-center text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+
               {/* GRID */}
               {/* Se oculta por completo cuando no hay resultados: la
                   retroalimentación la muestra SinResultadosBusqueda
                   (o el mensaje genérico) más abajo. */}
 
-              {productosMostrados.length > 0 && (
+              {!cargando && !error && productosMostrados.length > 0 && (
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
 
@@ -359,8 +428,8 @@ export default function Catalogo({
                       <div className="relative h-[190px] bg-gray-50">
 
                         <img
-                          src={producto.imagen}
-                          alt={producto.nombre}
+                          src={getImagen(producto)}
+                          alt={getNombre(producto)}
                           className="w-full h-full object-cover"
                         />
 
@@ -385,20 +454,20 @@ export default function Catalogo({
                       <div className="p-4">
 
                         <p className="text-[9px] font-black">
-                          {producto.marca}
+                          {getMarca(producto)}
                         </p>
 
                         <h3 className="text-[11px] font-bold mt-2 leading-tight min-h-[30px]">
-                          {producto.nombre}
+                          {getNombre(producto)}
                         </h3>
 
                         <p className="text-[9px] text-gray-400 mt-2">
-                          Código: {producto.codigo}
+                          Código: {getCodigo(producto)}
                         </p>
 
                         <p className="text-lg font-black mt-4">
                           $
-                          {producto.precio.toLocaleString(
+                          {getPrecio(producto).toLocaleString(
                             "es-UY"
                           )}
                         </p>
@@ -486,7 +555,7 @@ export default function Catalogo({
                   en su lugar. Si no hay búsqueda activa (ej: categoría sin
                   productos cargados), se muestra un mensaje genérico. */}
 
-              {productosMostrados.length === 0 && (
+              {!cargando && !error && productosMostrados.length === 0 && (
                 busqueda.trim() ? (
                   <SinResultadosBusqueda termino={busqueda.trim()} />
                 ) : (
