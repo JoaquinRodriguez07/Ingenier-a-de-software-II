@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "./Navbar";
+import { categorias } from "./productos";
 import SearchBar from "./SearchBar";
 import { filtrarRepuestos } from "./filtrarRepuestos";
 import SinResultadosBusqueda from "./SinResultadosBusqueda";
@@ -33,6 +34,7 @@ export default function Catalogo({
   // ==========================================
   onDetalle,
   categoriaInicial,
+  filtrosVehiculo,
   onCategoriaSeleccionada,
   onAgregarAlCarrito,
   onAlternarFavorito,
@@ -54,7 +56,12 @@ export default function Catalogo({
   const [busqueda, setBusqueda] = useState("");
   const [cantidades, setCantidades] = useState({});
 
+  const [productosAPI, setProductosAPI] = useState([]);
+  const [cargandoProductos, setCargandoProductos] = useState(false);
+  const [errorProductos, setErrorProductos] = useState("");
+
   // ==========================================
+  // CARGAR PRODUCTOS DESDE LA API
   // DATOS DE LA API
   // ==========================================
   // El catálogo ya no usa el mock local de repuestos: los repuestos y las
@@ -101,6 +108,51 @@ export default function Catalogo({
   // (App.jsx pasa `categoriaCatalogo`); ese camino se mantiene.
 
   useEffect(() => {
+    const cargarProductos = async () => {
+      try {
+        setCargandoProductos(true);
+        setErrorProductos("");
+
+        const params = new URLSearchParams();
+
+        if (filtrosVehiculo?.brand) {
+          params.set("brand", filtrosVehiculo.brand);
+        }
+
+        if (filtrosVehiculo?.model) {
+          params.set("model", filtrosVehiculo.model);
+        }
+
+        if (filtrosVehiculo?.year) {
+          params.set("year", filtrosVehiculo.year);
+        }
+
+        const url = `/api/v1/parts${
+          params.toString() ? `?${params.toString()}` : ""
+        }`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error("No se pudieron obtener los repuestos");
+        }
+
+        const data = await response.json();
+
+        setProductosAPI(data.parts || []);
+      } catch (error) {
+        console.error("Error cargando productos:", error);
+        setProductosAPI([]);
+        setErrorProductos(
+          "No se pudieron cargar los repuestos."
+        );
+      } finally {
+        setCargandoProductos(false);
+      }
+    };
+
+    cargarProductos();
+  }, [filtrosVehiculo]);
     setCategoria(categoriaInicial || null);
   }, [categoriaInicial]);
 
@@ -111,6 +163,53 @@ export default function Catalogo({
   // dispara un fetch nuevo. `activo` descarta respuestas viejas si el
   // usuario cambia de categoría antes de que llegue la anterior.
 
+  const productosMostrados = useMemo(() => {
+  let lista = [...productosAPI];
+
+  // Convertir las categorías del frontend
+  // a las categorías que usa la API
+  const categoriasAPI = {
+    Frenos: "Brakes",
+    Motor: "Engine",
+    Suspensión: "Suspension",
+    Filtros: "Filters",
+    Accesorios: "Accessories",
+  };
+
+  // Filtrar por categoría
+  if (categoria) {
+    const categoriaAPI =
+      categoriasAPI[categoria] || categoria;
+
+    lista = lista.filter(
+      (p) => p.category === categoriaAPI
+    );
+  }
+
+  // Filtrar por búsqueda
+  if (busqueda.trim()) {
+    const q = busqueda.toLowerCase();
+
+    lista = lista.filter((p) =>
+      `${p.name} ${p.part_code} ${p.category} ${
+        p.compatible_brands?.join(" ") || ""
+      } ${p.compatible_models?.join(" ") || ""}`
+        .toLowerCase()
+        .includes(q)
+    );
+  }
+
+  // Ordenar
+  if (orden === "Menor precio") {
+    lista.sort((a, b) => a.price - b.price);
+  }
+
+  if (orden === "Mayor precio") {
+    lista.sort((a, b) => b.price - a.price);
+  }
+
+  return lista;
+}, [productosAPI, categoria, busqueda, orden]);
   useEffect(() => {
     let activo = true;
 
@@ -304,11 +403,18 @@ export default function Catalogo({
                   </span>
 
                   <p className="text-[14px] font-black">
-                    Volkswagen Gol 2019 Highline
+                    {filtrosVehiculo?.brand && filtrosVehiculo?.model
+                      ? `${filtrosVehiculo.brand} ${filtrosVehiculo.model}${
+                          filtrosVehiculo.year
+                            ? ` ${filtrosVehiculo.year}`
+                            : ""
+                        }`
+                      : "Sin vehículo seleccionado"}
                   </p>
 
                   <button
                     type="button"
+                    onClick={onHome}
                     className="text-orange-500 text-[9px] font-bold underline"
                   >
                     Cambiar
@@ -533,6 +639,7 @@ export default function Catalogo({
 
               </div>
 
+              {/* ESTADOS DE CARGA / ERROR */}
               {/* CARGANDO */}
 
               {cargando && (
@@ -584,15 +691,17 @@ export default function Catalogo({
 
                   return (
 
-                    <div
-                      key={producto.id}
-                      className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition"
-                    >
+              {cargandoProductos && (
+                <div className="py-20 text-center text-gray-400 text-sm">
+                  Cargando repuestos...
+                </div>
+              )}
 
-                      {/* IMAGEN */}
-
-                      <div className="relative h-[190px] bg-gray-50">
-
+              {errorProductos && !cargandoProductos && (
+                <div className="py-20 text-center text-red-400 text-sm">
+                  {errorProductos}
+                </div>
+              )}
                         {/* Sin filtro, el catálogo completo son ~377
                             tarjetas: lazy evita decodificar todas las
                             imágenes que están fuera de pantalla. */}
@@ -604,45 +713,47 @@ export default function Catalogo({
                           className="w-full h-full object-cover"
                         />
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onAlternarFavorito(producto)
-                          }
-                          className={`absolute top-3 right-3 w-9 h-9 rounded-full bg-white shadow-md text-lg ${
-                            favorito
-                              ? "text-orange-500"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {favorito ? "♥" : "♡"}
-                        </button>
+              {/* GRID */}
 
-                      </div>
+              {!cargandoProductos && !errorProductos && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
 
-                      {/* INFORMACIÓN */}
+                  {productosMostrados.map((producto) => {
 
-                      <div className="p-4">
+                    const cantidad =
+                      cantidades[producto.id] || 1;
 
+                    const favorito =
+                      esFavorito(producto.id);
                         <p className="text-[9px] font-black">
                           {producto.marcaPrincipal ?? producto.marca}
                         </p>
 
-                        <h3 className="text-[11px] font-bold mt-2 leading-tight min-h-[30px]">
-                          {producto.nombre}
-                        </h3>
+                    // Adaptamos los nombres de la API
+                    // a los nombres que usa visualmente el catálogo.
+                    const productoVisual = {
+                      ...producto,
+                      nombre: producto.name,
+                      codigo: producto.part_code,
+                      precio: producto.price,
+                      categoria: producto.category,
+                      marca:
+                        producto.compatible_brands?.join(", ") ||
+                        "Compatible",
+                      stock: producto.stock,
+                      imagen:
+                        producto.imagen ||
+                        "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=600&auto=format&fit=crop",
+                    };
 
-                        <p className="text-[9px] text-gray-400 mt-2">
-                          Código: {producto.codigo}
-                        </p>
+                    return (
 
-                        <p className="text-lg font-black mt-4">
-                          $
-                          {producto.precio.toLocaleString(
-                            "es-UY"
-                          )}
-                        </p>
+                      <div
+                        key={producto.id}
+                        className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition"
+                      >
 
+                        {/* IMAGEN */}
                         {/* DEUDA CONOCIDA (diferida): el stock se muestra
                             siempre en verde como "En stock" y el botón
                             AGREGAR queda habilitado, así que un repuesto
@@ -651,77 +762,140 @@ export default function Catalogo({
                           En stock · {producto.stock} unidades
                         </p>
 
-                        {/* CANTIDAD + AGREGAR */}
+                        <div className="relative h-[190px] bg-gray-50">
 
-                        <div className="flex items-center justify-between mt-4">
-
-                          <div className="flex border border-gray-200 rounded-md">
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                cambiarCantidad(
-                                  producto.id,
-                                  -1
-                                )
-                              }
-                              className="w-7 h-8"
-                            >
-                              −
-                            </button>
-
-                            <span className="w-7 flex items-center justify-center text-[9px]">
-                              {cantidad}
-                            </span>
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                cambiarCantidad(
-                                  producto.id,
-                                  1
-                                )
-                              }
-                              className="w-7 h-8"
-                            >
-                              +
-                            </button>
-
-                          </div>
+                          <img
+                            src={productoVisual.imagen}
+                            alt={productoVisual.nombre}
+                            className="w-full h-full object-cover"
+                          />
 
                           <button
                             type="button"
                             onClick={() =>
-                              agregar(producto)
+                              onAlternarFavorito(producto)
                             }
-                            className="bg-orange-500 hover:bg-orange-600 text-white px-3 h-8 rounded-md text-[8px] font-black"
+                            className={`absolute top-3 right-3 w-9 h-9 rounded-full bg-white shadow-md text-lg ${
+                              favorito
+                                ? "text-orange-500"
+                                : "text-gray-500"
+                            }`}
                           >
-                            🛒 AGREGAR
+                            {favorito ? "♥" : "♡"}
                           </button>
 
                         </div>
 
-                        {/* DETALLE */}
+                        {/* INFORMACIÓN */}
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onDetalle(producto)
-                          }
-                          className="w-full h-9 mt-2 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white rounded-md text-[9px] font-bold transition"
-                        >
-                          Ver detalle
-                        </button>
+                        <div className="p-4">
+
+                          <p className="text-[9px] font-black">
+                            {productoVisual.marca}
+                          </p>
+
+                          <h3 className="text-[11px] font-bold mt-2 leading-tight min-h-[30px]">
+                            {productoVisual.nombre}
+                          </h3>
+
+                          <p className="text-[9px] text-gray-400 mt-2">
+                            Código: {productoVisual.codigo}
+                          </p>
+
+                          <p className="text-lg font-black mt-4">
+                            $
+                            {productoVisual.precio.toLocaleString(
+                              "es-UY"
+                            )}
+                          </p>
+
+                          <p className="text-[9px] text-green-600 font-bold mt-2">
+                            En stock · {productoVisual.stock} unidades
+                          </p>
+
+                          {/* CANTIDAD + AGREGAR */}
+
+                          <div className="flex items-center justify-between mt-4">
+
+                            <div className="flex border border-gray-200 rounded-md">
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  cambiarCantidad(
+                                    producto.id,
+                                    -1
+                                  )
+                                }
+                                className="w-7 h-8"
+                              >
+                                −
+                              </button>
+
+                              <span className="w-7 flex items-center justify-center text-[9px]">
+                                {cantidad}
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  cambiarCantidad(
+                                    producto.id,
+                                    1
+                                  )
+                                }
+                                className="w-7 h-8"
+                              >
+                                +
+                              </button>
+
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                agregar(producto)
+                              }
+                              className="bg-orange-500 hover:bg-orange-600 text-white px-3 h-8 rounded-md text-[8px] font-black"
+                            >
+                              🛒 AGREGAR
+                            </button>
+
+                          </div>
+
+                          {/* DETALLE */}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onDetalle(producto)
+                            }
+                            className="w-full h-9 mt-2 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white rounded-md text-[9px] font-bold transition"
+                          >
+                            Ver detalle
+                          </button>
+
+                        </div>
 
                       </div>
 
-                    </div>
+                    );
+                  })}
 
-                  );
-                })}
+                </div>
+              )}
 
-              </div>
+              {/* SIN RESULTADOS */}
 
+              {!cargandoProductos &&
+                !errorProductos &&
+                productosMostrados.length === 0 && (
+
+                  <div className="py-20 text-center text-gray-400 text-sm">
+                    No encontramos productos.
+                  </div>
+
+                )}
               )}
 
               {/* SIN RESULTADOS */}

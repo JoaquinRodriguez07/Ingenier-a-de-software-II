@@ -23,6 +23,13 @@ function App() {
   // repuestos). Los nombres de categoría los define el backend
   // (GET /api/v1/parts/categories), no el frontend.
   const [categoriaCatalogo, setCategoriaCatalogo] =
+  useState("Frenos");
+
+  const [filtrosVehiculo, setFiltrosVehiculo] = useState({
+    brand: "",
+    model: "",
+    year: "",
+  });
     useState(null);
 
   const [productoSeleccionado, setProductoSeleccionado] =
@@ -184,8 +191,23 @@ function App() {
      (antes: setPagina("x") — ahora: navigate("/x"))
   ====================================================== */
 
+  const irAlCatalogo = (
+    categoria = "Frenos",
+    vehiculo = null
+  ) => {
   const irAlCatalogo = (categoria = null) => {
     setCategoriaCatalogo(categoria);
+
+    if (vehiculo) {
+      setFiltrosVehiculo(vehiculo);
+    } else {
+      setFiltrosVehiculo({
+        brand: "",
+        model: "",
+        year: "",
+      });
+    }
+
     navigate("/catalogo");
   };
 
@@ -453,7 +475,12 @@ function App() {
 
       <Route
         path="/"
-        element={<Home {...propsNavbar} />}
+        element={
+          <Home
+            {...propsNavbar}
+            filtrosVehiculo={filtrosVehiculo}
+          />
+        }
       />
 
       {/* =================================================
@@ -502,6 +529,39 @@ function App() {
           que redirigen a /login).
       ================================================== */}
 
+      <Route element={<ProtectedRoute />}>
+        <Route
+          path="/catalogo"
+          element={
+            <Catalogo
+              {...propsNavbar}
+              onDetalle={irAlDetalle}
+              categoriaInicial={categoriaCatalogo}
+              filtrosVehiculo={filtrosVehiculo}
+              carrito={carrito}
+              favoritos={favoritos}
+              onAgregarAlCarrito={agregarAlCarrito}
+              onAlternarFavorito={alternarFavorito}
+              esFavorito={esFavorito}
+            />
+          }
+        />
+
+        <Route
+          path="/producto"
+          element={
+            <DetalleProducto
+              {...propsNavbar}
+              onDetalle={irAlDetalle}
+              onCatalogo={irAlCatalogo}
+              producto={productoSeleccionado}
+              filtrosVehiculo={filtrosVehiculo}
+              onAgregarAlCarrito={agregarAlCarrito}
+              onAlternarFavorito={alternarFavorito}
+              esFavorito={esFavorito}
+            />
+          }
+        />
       <Route
         path="/catalogo"
         element={
