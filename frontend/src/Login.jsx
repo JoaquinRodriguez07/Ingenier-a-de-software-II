@@ -1,5 +1,7 @@
 import { useState } from "react";
 import Navbar from "./Navbar";
+import { login } from "./api";
+import { decodeToken } from "./auth";
 
 export default function Login({
   onHome,
@@ -20,8 +22,9 @@ export default function Login({
   const [remember, setRemember] = useState(false);
 
   const [error, setError] = useState("");
+  const [cargando, setCargando] = useState(false);
 
-  const iniciarSesion = (e) => {
+  const iniciarSesion = async (e) => {
     e.preventDefault();
 
     setError("");
@@ -31,50 +34,26 @@ export default function Login({
       return;
     }
 
-    let usuarios = [];
+    setCargando(true);
 
     try {
-      usuarios =
-        JSON.parse(
-          localStorage.getItem("autobought-usuarios")
-        ) || [];
-    } catch {
-      usuarios = [];
+      const data = await login(email.trim(), password);
+      const payload = decodeToken(data.access_token);
+
+      const sesion = {
+        token: data.access_token,
+        tokenType: data.token_type,
+        userId: payload?.sub ?? null,
+        userType: payload?.user_type ?? null,
+        email: email.trim(),
+      };
+
+      onIniciarSesion(sesion, remember);
+    } catch (err) {
+      setError(err.message || "No se pudo iniciar sesión.");
+    } finally {
+      setCargando(false);
     }
-
-    const usuarioEncontrado = usuarios.find(
-      (usuario) =>
-        usuario.email.toLowerCase() ===
-          email.trim().toLowerCase() &&
-        usuario.password === password
-    );
-
-    if (!usuarioEncontrado) {
-      setError("Correo electrónico o contraseña incorrectos.");
-      return;
-    }
-
-    const usuarioSesion = {
-      id: usuarioEncontrado.id,
-      nombre: usuarioEncontrado.nombre,
-      apellido: usuarioEncontrado.apellido,
-      email: usuarioEncontrado.email,
-      telefono: usuarioEncontrado.telefono,
-    };
-
-    if (remember) {
-      localStorage.setItem(
-        "autobought-sesion",
-        JSON.stringify(usuarioSesion)
-      );
-    } else {
-      sessionStorage.setItem(
-        "autobought-sesion",
-        JSON.stringify(usuarioSesion)
-      );
-    }
-
-    onIniciarSesion(usuarioSesion, remember);
   };
 
   return (
@@ -232,9 +211,10 @@ export default function Login({
 
             <button
               type="submit"
-              className="w-full h-11 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-[10px] font-black mt-6 transition"
+              disabled={cargando}
+              className="w-full h-11 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-[10px] font-black mt-6 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              INICIAR SESIÓN
+              {cargando ? "INICIANDO SESIÓN..." : "INICIAR SESIÓN"}
             </button>
 
             {/* =================================================

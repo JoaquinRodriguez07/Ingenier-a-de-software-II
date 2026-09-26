@@ -133,6 +133,39 @@ export default function DetalleProducto({
           },
         ],
       };
+  // DEUDA CONOCIDA (diferida): si no llega `producto` (refresh o link
+  // compartido a /producto, donde el estado de App ya está vacío) se
+  // renderiza este producto inventado, con opiniones y specs que no
+  // existen en ninguna base, y su AGREGAR mete el id fantasma "BP1234"
+  // en el carrito real. Además, su breadcrumb llama a onCatalogo("Frenos")
+  // y el backend no tiene ninguna categoría "Frenos", así que ese camino
+  // termina en 'No hay productos en la categoría "Frenos"'. El arreglo de
+  // verdad necesita un id en la ruta (/producto/:id) y un
+  // GET /api/v1/parts/{id} que hoy no existe.
+  const productoActual = producto || {
+    id: "BP1234", marca: "BOSCH", nombre: "Pastillas de Freno Delanteras Bosch",
+    codigo: "BP1234", precio: 2450, categoria: "Frenos",
+    imagen: "https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?q=80&w=900&auto=format&fit=crop",
+    descripcion: "Pastillas de freno delanteras Bosch de alta performance. Diseñadas para brindar máxima seguridad y frenado eficiente.",
+    stock: 12,
+    especificaciones: [["Posición","Delanteras"],["Sistema de freno","Disco"],["Ancho","156,3 mm"],["Alto","58,7 mm"],["Espesor","17,5 mm"],["Material","Semi-metálico"]],
+    aplicaciones: ["Volkswagen Gol 2019 Highline 1.6 MSI","Volkswagen Gol 2018 1.6 MSI","Volkswagen Voyage 2019 1.6 MSI"],
+    garantia: "6 meses por defectos de fabricación.",
+    opiniones: [{nombre:"Martín",estrellas:5,texto:"Muy buena calidad y encajaron perfecto."},{nombre:"Lucía",estrellas:5,texto:"Llegaron rápido y el producto es excelente."}],
+  };
+
+  // Nota de opiniones: se calcula con las opiniones REALES del producto.
+  // Si no hay ninguna no se muestra nota. Antes había un ★ 4.8/5 fijo que
+  // se renderizaba incluso arriba del estado vacío "todavía no tiene
+  // opiniones", es decir un número inventado presentado como la nota real
+  // del repuesto (todos los que vienen de la API llegan sin `opiniones`).
+  const opiniones = productoActual.opiniones || [];
+  const promedioOpiniones = opiniones.length
+    ? (
+        opiniones.reduce((total, o) => total + (o.estrellas || 0), 0) /
+        opiniones.length
+      ).toFixed(1)
+    : null;
 
   const favorito = esFavorito(productoActual.id);
 
@@ -319,6 +352,11 @@ export default function DetalleProducto({
               </p>
 
               {/* COMPATIBILIDAD */}
+              <p className="text-orange-500 text-[11px] font-black">{productoActual.marcaPrincipal ?? productoActual.marca}</p>
+              <h1 className="text-2xl md:text-3xl font-black mt-2 leading-tight">{productoActual.nombre}</h1>
+              <p className="text-[10px] text-gray-400 mt-2">Código: {productoActual.codigo}</p>
+              <p className="text-3xl font-black text-orange-500 mt-5">${productoActual.precio.toLocaleString("es-UY")}</p>
+              <p className="text-[10px] mt-2"><span className="text-green-600 font-bold">En stock</span><span className="text-gray-400 ml-2">({productoActual.stock} unidades)</span></p>
 
               <div className="bg-orange-50 border border-orange-100 rounded-lg p-4 mt-5">
 
@@ -377,6 +415,12 @@ export default function DetalleProducto({
                     +
                   </button>
 
+                  <button onClick={() => setCantidad((v) => Math.max(1, v - 1))} className="w-9">−</button>
+                  <span className="w-9 flex items-center justify-center text-[10px]">{cantidad}</span>
+                  {/* DEUDA CONOCIDA (diferida): con stock 0 el "+" queda
+                      clavado mientras la cantidad mostrada arranca en 1,
+                      y AGREGAR sigue habilitado. */}
+                  <button onClick={() => setCantidad((v) => Math.min(productoActual.stock, v + 1))} className="w-9">+</button>
                 </div>
 
                 <button
@@ -421,6 +465,8 @@ export default function DetalleProducto({
                   {productoActual.garantia}
                 </p>
 
+                <p className="text-[10px] font-black">🛡 Garantía</p>
+                <p className="text-[9px] text-gray-500 mt-1">{productoActual.garantia || "Consultar garantía."}</p>
                 <div className="border-t my-4" />
 
                 <p className="text-[10px] font-black">
@@ -490,6 +536,8 @@ export default function DetalleProducto({
                     {productoActual.descripcion}
                   </p>
 
+                  <h2 className="text-[11px] font-black uppercase">Descripción</h2>
+                  <p className="text-[10px] text-gray-600 leading-relaxed mt-4">{productoActual.descripcion || "Este repuesto todavía no tiene una descripción cargada."}</p>
                 </div>
               )}
 
@@ -521,6 +569,17 @@ export default function DetalleProducto({
                       )
                     )}
 
+                  <h2 className="text-[11px] font-black uppercase mb-5">Especificaciones técnicas</h2>
+                  {!productoActual.especificaciones?.length && (
+                    <p className="text-[9px] text-gray-400">Este repuesto no tiene especificaciones cargadas.</p>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-14 gap-y-3 max-w-[800px]">
+                    {(productoActual.especificaciones || []).map(([clave, valor]) => (
+                      <div key={clave} className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-[9px] text-gray-500">{clave}</span>
+                        <span className="text-[9px] font-bold">{valor}</span>
+                      </div>
+                    ))}
                   </div>
 
                 </div>
@@ -557,6 +616,17 @@ export default function DetalleProducto({
                       )
                     )}
 
+                  <h2 className="text-[11px] font-black uppercase">Aplicaciones y compatibilidad</h2>
+                  <p className="text-[9px] text-gray-500 mt-2">Vehículos para los que está indicado este repuesto:</p>
+                  {!productoActual.aplicaciones?.length && (
+                    <p className="text-[9px] text-gray-400 mt-4">Este repuesto no tiene aplicaciones cargadas.</p>
+                  )}
+                  <div className="mt-5 space-y-2 max-w-[700px]">
+                    {(productoActual.aplicaciones || []).map((aplicacion) => (
+                      <div key={aplicacion} className="bg-gray-50 rounded-md px-4 py-3 text-[10px]">
+                        <span className="text-green-600 mr-2">✓</span>{aplicacion}
+                      </div>
+                    ))}
                   </div>
 
                 </div>
@@ -581,6 +651,8 @@ export default function DetalleProducto({
                       {productoActual.garantia}
                     </p>
 
+                    <p className="text-[11px] font-black">🛡 Garantía del producto</p>
+                    <p className="text-[10px] text-gray-600 mt-2">{productoActual.garantia || "Consultar garantía."}</p>
                   </div>
 
                 </div>
@@ -603,6 +675,14 @@ export default function DetalleProducto({
 
                   </div>
 
+                    <h2 className="text-[11px] font-black uppercase">Opiniones de clientes</h2>
+                    {promedioOpiniones && (
+                      <span className="text-orange-500 font-black text-lg">★ {promedioOpiniones}/5</span>
+                    )}
+                  </div>
+                  {!productoActual.opiniones?.length && (
+                    <p className="text-[9px] text-gray-400">Este repuesto todavía no tiene opiniones.</p>
+                  )}
                   <div className="space-y-3">
 
                     {(productoActual.opiniones || []).map(

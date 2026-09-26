@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
+import { obtenerSesion, sesionValida } from "./auth";
 
 import Home from "./Home";
 import Login from "./Login";
@@ -18,6 +19,9 @@ import ProtectedRoute from "./ProtectedRoute";
 function App() {
   const navigate = useNavigate();
 
+  // null = sin filtro de categoría (el catálogo muestra todos los
+  // repuestos). Los nombres de categoría los define el backend
+  // (GET /api/v1/parts/categories), no el frontend.
   const [categoriaCatalogo, setCategoriaCatalogo] =
   useState("Frenos");
 
@@ -26,6 +30,7 @@ function App() {
     model: "",
     year: "",
   });
+    useState(null);
 
   const [productoSeleccionado, setProductoSeleccionado] =
     useState(null);
@@ -35,15 +40,8 @@ function App() {
   ====================================================== */
 
   const [usuario, setUsuario] = useState(() => {
-    try {
-      return (
-        JSON.parse(
-          localStorage.getItem("autobought-sesion")
-        ) || null
-      );
-    } catch {
-      return null;
-    }
+    const sesion = obtenerSesion();
+    return sesionValida(sesion) ? sesion : null;
   });
 
   /* =====================================================
@@ -197,6 +195,7 @@ function App() {
     categoria = "Frenos",
     vehiculo = null
   ) => {
+  const irAlCatalogo = (categoria = null) => {
     setCategoriaCatalogo(categoria);
 
     if (vehiculo) {
@@ -245,6 +244,11 @@ function App() {
         "autobought-sesion",
         JSON.stringify(usuarioLogueado)
       );
+    } else {
+      sessionStorage.setItem(
+        "autobought-sesion",
+        JSON.stringify(usuarioLogueado)
+      );
     }
 
     navigate("/");
@@ -272,7 +276,11 @@ function App() {
   const actualizarUsuario = (usuarioActualizado) => {
     setUsuario(usuarioActualizado);
 
-    localStorage.setItem(
+    const storage = localStorage.getItem("autobought-sesion")
+      ? localStorage
+      : sessionStorage;
+
+    storage.setItem(
       "autobought-sesion",
       JSON.stringify(usuarioActualizado)
     );
@@ -285,9 +293,8 @@ function App() {
   const cerrarSesion = () => {
     setUsuario(null);
 
-    localStorage.removeItem(
-      "autobought-sesion"
-    );
+    localStorage.removeItem("autobought-sesion");
+    sessionStorage.removeItem("autobought-sesion");
 
     navigate("/");
   };
@@ -515,8 +522,11 @@ function App() {
       />
 
       {/* =================================================
-          RUTAS PROTEGIDAS
-          (requieren sesión activa — subtask 2)
+          CATÁLOGO Y DETALLE DE PRODUCTO
+          Navegar el catálogo es público: no requiere sesión.
+          Agregar al carrito o marcar favoritos sí la requiere
+          (ver los guards en agregarAlCarrito/alternarFavorito,
+          que redirigen a /login).
       ================================================== */}
 
       <Route element={<ProtectedRoute />}>
@@ -552,7 +562,44 @@ function App() {
             />
           }
         />
+      <Route
+        path="/catalogo"
+        element={
+          <Catalogo
+            {...propsNavbar}
+            onDetalle={irAlDetalle}
+            categoriaInicial={categoriaCatalogo}
+            onCategoriaSeleccionada={setCategoriaCatalogo}
+            carrito={carrito}
+            favoritos={favoritos}
+            onAgregarAlCarrito={agregarAlCarrito}
+            onAlternarFavorito={alternarFavorito}
+            esFavorito={esFavorito}
+          />
+        }
+      />
 
+      <Route
+        path="/producto"
+        element={
+          <DetalleProducto
+            {...propsNavbar}
+            onDetalle={irAlDetalle}
+            onCatalogo={irAlCatalogo}
+            producto={productoSeleccionado}
+            onAgregarAlCarrito={agregarAlCarrito}
+            onAlternarFavorito={alternarFavorito}
+            esFavorito={esFavorito}
+          />
+        }
+      />
+
+      {/* =================================================
+          RUTAS PROTEGIDAS
+          (requieren sesión activa)
+      ================================================== */}
+
+      <Route element={<ProtectedRoute />}>
         <Route
           path="/carrito"
           element={
